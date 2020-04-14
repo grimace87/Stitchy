@@ -1,0 +1,9 @@
+[package]
+name = "stitchy"
+version = "0.1.0"
+authors = ["Thomas Reichert"]
+edition = "2018"
+
+[dependencies]
+structopt = { version = "0.3.3", default-features = false }
+image = "0.22.3"

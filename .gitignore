@@ -1,0 +1,6 @@
+
+/.idea/
+/target
+**/*.rs.bk
+/*.png
+/*.jpg
