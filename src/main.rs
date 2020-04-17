@@ -7,10 +7,14 @@ use image_set::image_set::ImageSet;
 
 fn main() {
 
-    // Get command line args
-    let opt = Opt::from_args();
+    // Get command line args, check for flags that merely print to the console
+    let opt: Opt = Opt::from_args();
     if opt.help {
         print_help();
+        return;
+    }
+    if opt.version {
+        print_version();
         return;
     }
 
@@ -72,10 +76,21 @@ fn print_file_count_error() {
 
 fn print_help() {
     println!("Stitchy v{} by {}", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"));
+    println!("Collects a number of image files in the current directory and stitches them into");
+    println!("a single file.");
     println!();
-    println!("Collects all image files starting with \"Screenshot\" in");
-    println!("the current directory and stitches them into a");
-    println!("single file. No arguments are currently supported.");
+    println!("Basic usage:");
+    println!("  stitchy n");
+    println!("  where n is the number of images to use. The most recent images available will be");
+    println!("  used. There must be at least that many in the current directory.");
+    println!();
+    println!("Supported flags:");
+    println!("  --help, -h   Print this help");
+    println!("  --version    Print the installed version number");
+}
+
+fn print_version() {
+    println!("Stitchy version {}", env!("CARGO_PKG_VERSION"));
 }
 
 #[derive(Debug, StructOpt)]
@@ -84,6 +99,9 @@ struct Opt {
 
     #[structopt(short, long)]
     help: bool,
+
+    #[structopt(long)]
+    version: bool,
 
     number_of_files: usize
 }
