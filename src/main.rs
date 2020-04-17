@@ -4,6 +4,7 @@ use structopt::StructOpt;
 use std::time::SystemTime;
 use std::path::Path;
 use image_set::image_set::ImageSet;
+use crate::image_set::image_set::AlignmentMode;
 
 fn main() {
 
@@ -15,6 +16,12 @@ fn main() {
     }
     if opt.version {
         print_version();
+        return;
+    }
+
+    // Verify not requesting both horizontal and vertical
+    if opt.horizontal && opt.vertical {
+        println!("Choose either horizontal or vertical (or neither), not both.");
         return;
     }
 
@@ -57,8 +64,15 @@ fn main() {
     image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
     image_files.truncate(opt.number_of_files);
 
+    // Determine alignment mode to use
+    let alignment: AlignmentMode = match (opt.horizontal, opt.vertical) {
+        (true, false) => AlignmentMode::Horizontal,
+        (false, true) => AlignmentMode::Vertical,
+        _ => AlignmentMode::Grid
+    };
+
     // Decode all images and keep in memory for now
-    let mut image_set = ImageSet::empty_set();
+    let mut image_set = ImageSet::empty_set(alignment);
     for file in image_files {
         let path = Path::new(&file.full_path);
         image_set.add_from_file_path(path);
@@ -85,8 +99,10 @@ fn print_help() {
     println!("  used. There must be at least that many in the current directory.");
     println!();
     println!("Supported flags:");
-    println!("  --help, -h   Print this help");
-    println!("  --version    Print the installed version number");
+    println!("  --help            Print this help");
+    println!("  --version         Print the installed version number");
+    println!("  --horizontal, -h  Force stitching across a single row only");
+    println!("  --vertical, -v    Force stitching down a single column only");
 }
 
 fn print_version() {
@@ -97,11 +113,17 @@ fn print_version() {
 #[structopt(name = "")]
 struct Opt {
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     help: bool,
 
     #[structopt(long)]
     version: bool,
+
+    #[structopt(short, long)]
+    horizontal: bool,
+
+    #[structopt(short, long)]
+    vertical: bool,
 
     number_of_files: usize
 }

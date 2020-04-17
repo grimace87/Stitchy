@@ -8,6 +8,7 @@ pub mod image_set {
 
     pub struct ImageSet {
         images: Vec<image::DynamicImage>,
+        alignment: AlignmentMode,
         is_prepared: bool,
         main_axis: Axis,
         grid_size_main_axis: u32,
@@ -19,9 +20,10 @@ pub mod image_set {
     }
 
     impl ImageSet {
-        pub fn empty_set() -> ImageSet {
+        pub fn empty_set(alignment: AlignmentMode) -> ImageSet {
             ImageSet {
                 images: Vec::new(),
+                alignment,
                 is_prepared: false,
                 main_axis: Axis::Horizontal,
                 grid_size_main_axis: 1,
@@ -61,6 +63,17 @@ pub mod image_set {
 
         /// Sets main_axis
         fn update_main_axis(&mut self) {
+
+            // Check for very particular alignment modes
+            if self.alignment == AlignmentMode::Horizontal {
+                self.main_axis = Axis::Horizontal;
+                return
+            }
+            if self.alignment == AlignmentMode::Vertical {
+                self.main_axis = Axis::Vertical;
+                return;
+            }
+
             let mut wide_count = 0;
             let mut portrait_count = 0;
             let mut squarish_count = 0;
@@ -83,6 +96,14 @@ pub mod image_set {
         /// Sets grid_size_main_axis, grid_size_cross_axis and main_lines_with_full_size
         fn update_grid_size(&mut self) {
             let i = self.images.len() as  u32;
+
+            // Handle very particular alignments
+            if self.alignment == AlignmentMode::Horizontal || self.alignment == AlignmentMode::Vertical {
+                self.grid_size_main_axis = i;
+                self.grid_size_cross_axis = 1;
+                self.main_lines_with_full_size = 1;
+                return;
+            }
 
             // Handle special case where i is 2 or 3
             if i < 4 {
@@ -241,6 +262,13 @@ pub mod image_set {
         Wide,
         Portrait,
         Squarish
+    }
+
+    #[derive(PartialEq)]
+    pub enum AlignmentMode {
+        Grid,
+        Horizontal,
+        Vertical
     }
 
     impl AspectType {
