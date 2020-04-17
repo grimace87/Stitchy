@@ -5,10 +5,13 @@ pub mod image_set {
     use image::DynamicImage;
     use self::image::GenericImage;
     use std::path::Path;
+    use std::cmp::min;
 
     pub struct ImageSet {
         images: Vec<image::DynamicImage>,
         alignment: AlignmentMode,
+        width_limit: u32,
+        height_limit: u32,
         is_prepared: bool,
         main_axis: Axis,
         grid_size_main_axis: u32,
@@ -20,10 +23,12 @@ pub mod image_set {
     }
 
     impl ImageSet {
-        pub fn empty_set(alignment: AlignmentMode) -> ImageSet {
+        pub fn empty_set(alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> ImageSet {
             ImageSet {
                 images: Vec::new(),
                 alignment,
+                width_limit: width_limit as u32,
+                height_limit: height_limit as u32,
                 is_prepared: false,
                 main_axis: Axis::Horizontal,
                 grid_size_main_axis: 1,
@@ -58,6 +63,7 @@ pub mod image_set {
             self.update_grid_size();
             self.update_cross_axis_pixel_size();
             self.generate_sizing_metadata();
+            self.check_size_limits();
             self.is_prepared = true;
         }
 
@@ -226,6 +232,78 @@ pub mod image_set {
                     grid_x += 1;
                 }
             }
+        }
+
+        /// Check if the image will exceed the limits applied, and scale down
+        /// if need be
+        fn check_size_limits(&mut self) {
+
+            // No adjustments if no limits were placed
+            if self.width_limit == 0 && self.height_limit == 0 {
+                return;
+            }
+
+            let total_width: u32;
+            let allowed_width: u32;
+            let total_height: u32;
+            let allowed_height: u32;
+            if self.main_axis == Axis::Horizontal {
+
+                // Width is main axis
+                total_width = self.largest_main_line_pixels;
+                allowed_width = if self.width_limit == 0 {
+                    total_width
+                } else {
+                    min(total_width, self.width_limit)
+                };
+
+                // Height is cross axis
+                total_height = self.grid_size_cross_axis * self.cross_axis_pixel_size_per_image;
+                allowed_height = if self.height_limit == 0 {
+                    total_height
+                } else {
+                    min(total_height, self.height_limit)
+                };
+            } else {
+
+                // Height is main axis
+                total_height = self.largest_main_line_pixels;
+                allowed_height = if self.height_limit == 0 {
+                    total_height
+                } else {
+                    min(total_height, self.height_limit)
+                };
+
+                // Width is cross axis
+                total_width = self.grid_size_cross_axis * self.cross_axis_pixel_size_per_image;
+                allowed_width = if self.width_limit == 0 {
+                    total_width
+                } else {
+                    min(total_width, self.width_limit)
+                };
+            }
+
+            // No scaling needed if limits exceed current size
+            if total_width <= allowed_width && total_height <= allowed_height {
+                return;
+            }
+
+            // Scale according to the greatest necessary reduction
+            let width_scale = allowed_width as f64 / total_width as f64;
+            let height_scale = allowed_height as f64 / total_height as f64;
+            let using_scale: f64 = f64::min(width_scale, height_scale);
+
+            // For each image, downscale its position and size
+            for sizing_data in self.sizing_metadata.iter_mut() {
+                sizing_data.w = (sizing_data.w as f64 * using_scale) as u32;
+                sizing_data.h = (sizing_data.h as f64 * using_scale) as u32;
+                sizing_data.x = (sizing_data.x as f64 * using_scale) as u32;
+                sizing_data.y = (sizing_data.y as f64 * using_scale) as u32;
+            }
+
+            // Update output image pixel sizes
+            self.cross_axis_pixel_size_per_image = (self.cross_axis_pixel_size_per_image as f64 * using_scale) as u32;
+            self.largest_main_line_pixels = (self.largest_main_line_pixels as f64 * using_scale) as u32;
         }
 
         fn make_file(&self, file_path: &Path) {
