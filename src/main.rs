@@ -1,10 +1,38 @@
 pub mod image_set;
+pub mod enums;
 
+use enums::AlignmentMode;
+use image_set::{FileData, ImageSet};
 use structopt::StructOpt;
-use std::time::SystemTime;
-use std::path::Path;
-use image_set::image_set::ImageSet;
-use crate::image_set::image_set::AlignmentMode;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "")]
+struct Opt {
+
+    #[structopt(long)]
+    help: bool,
+
+    #[structopt(long)]
+    version: bool,
+
+    #[structopt(short, long)]
+    horizontal: bool,
+
+    #[structopt(short, long)]
+    vertical: bool,
+
+    #[structopt(long, default_value="0")]
+    maxd: usize,
+
+    #[structopt(long, default_value="0")]
+    maxw: usize,
+
+    #[structopt(long, default_value="0")]
+    maxh: usize,
+
+    #[structopt(required_unless_one = &["help", "version"])]
+    number_of_files: Option<usize>
+}
 
 fn main() {
 
@@ -50,7 +78,7 @@ fn main() {
     }
 
     // Iterate over files in the current directory, get all JPG and PNG images
-    let accepted_extensions: [&str;5] = ["png", "jpg", "jpeg", "bmp", "gif"];
+    let accepted_extensions: [&str; 5] = ["png", "jpg", "jpeg", "bmp", "gif"];
     let current_path = std::env::current_dir().unwrap();
     let mut image_files: Vec<FileData> = vec!();
     if current_path.is_dir() {
@@ -60,7 +88,7 @@ fn main() {
                 if let Some(file_extension) = path.extension() {
                     if let Some(ext_as_str) = file_extension.to_str() {
                         if accepted_extensions.contains(&ext_as_str) {
-                            let useful_data = FileData{
+                            let useful_data = FileData {
                                 full_path: path.to_str().unwrap().to_string(),
                                 modify_time: path.metadata().unwrap().modified().unwrap()
                             };
@@ -89,17 +117,8 @@ fn main() {
         _ => AlignmentMode::Grid
     };
 
-    // Decode all images and keep in memory for now
-    let mut image_set = ImageSet::empty_set(alignment, opt.maxw, opt.maxh);
-    for file in image_files {
-        let path = Path::new(&file.full_path);
-        image_set.add_from_file_path(path);
-    }
-
-    // Prepare data set before generating output
-    let new_file = Path::new("./stitch.jpg");
-    image_set.generate_output_file(new_file);
-    println!("Created file: {}", new_file.to_str().unwrap());
+    // Process the files and generate output
+    ImageSet::process_files(image_files, alignment, opt.maxw, opt.maxh);
 }
 
 fn print_file_count_error() {
@@ -128,38 +147,4 @@ fn print_help() {
 
 fn print_version() {
     println!("Stitchy version {}", env!("CARGO_PKG_VERSION"));
-}
-
-#[derive(Debug, StructOpt)]
-#[structopt(name = "")]
-struct Opt {
-
-    #[structopt(long)]
-    help: bool,
-
-    #[structopt(long)]
-    version: bool,
-
-    #[structopt(short, long)]
-    horizontal: bool,
-
-    #[structopt(short, long)]
-    vertical: bool,
-
-    #[structopt(long, default_value="0")]
-    maxd: usize,
-
-    #[structopt(long, default_value="0")]
-    maxw: usize,
-
-    #[structopt(long, default_value="0")]
-    maxh: usize,
-
-    #[structopt(required_unless_one = &["help", "version"])]
-    number_of_files: Option<usize>
-}
-
-struct FileData {
-    full_path: String,
-    modify_time: SystemTime
 }
