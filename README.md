@@ -38,10 +38,6 @@ binaries are distributed at the moment, so it must be built from source:
 
 Here are some features I would like to add in the near future:
 
-- Support for a version flag, `--version`, which returns the current version
-- Support for horizontal-only and vertical-only arrangements, via `--horizontal`, `-h`,
-  `--vertical` or `-v` flags
-- Scaling to keep the output to sensible sizes, possibly using a flag like `--maxdim=n`
-  to specify a maximum pixel size in either dimension
 - Generate output files using incrementing suffixes where an output file already exists,
   i.e. "stitch_1.jpg", "stitch_2.jpg" etc. if "stitch.jpg" already exists
+- Stitch files in ascending date order, not the reverse

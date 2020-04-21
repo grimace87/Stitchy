@@ -13,7 +13,7 @@ pub struct FileData {
     pub modify_time: SystemTime
 }
 
-struct SizingMetadata {
+struct ImageRect {
     x: u32,
     y: u32,
     w: u32,
@@ -31,26 +31,82 @@ pub struct ImageSet {
     grid_size_cross_axis: u32,
     main_lines_with_full_size: u32,
     cross_axis_pixel_size_per_image: u32,
-    sizing_metadata: Vec<SizingMetadata>,
+    image_rects: Vec<ImageRect>,
     largest_main_line_pixels: u32
 }
 
 impl ImageSet {
+
+    /// Get all image files within a given directory
+    pub fn image_files_in_directory(path_components: Vec<&str>) -> Result<Vec<FileData>, String> {
+
+        // Get and verify current location
+        let accepted_extensions: [&str; 5] = ["png", "jpg", "jpeg", "bmp", "gif"];
+        let current_path = match std::env::current_dir() {
+            Ok(dir) => dir,
+            Err(_) => return Err(String::from("Could not access current directory"))
+        };
+        if !current_path.is_dir() {
+            return Err(String::from("Current directory cannot be opened as a directory"));
+        }
+
+        // Construct full path to locate images within
+        let mut use_path = current_path;
+        for component in path_components {
+            use_path.push(component);
+        }
+
+        // Scan directory and add all image files found
+        let mut image_files: Vec<FileData> = vec!();
+        if use_path.is_dir() {
+            for entry in std::fs::read_dir(use_path).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_file() {
+                    if let Some(file_extension) = path.extension() {
+                        if let Some(ext_as_str) = file_extension.to_str() {
+                            if accepted_extensions.contains(&ext_as_str) {
+                                if let Some(path_string) = path.to_str() {
+                                    if let Ok(metadata) = path.metadata() {
+                                        if let Ok(modify_date) = metadata.modified() {
+                                            let useful_data = FileData {
+                                                full_path: path_string.to_string(),
+                                                modify_time: modify_date
+                                            };
+                                            image_files.push(useful_data);
+                                        } else {
+                                            println!("Failed reading modify date for: {}", path_string);
+                                        }
+                                    } else {
+                                        println!("Failed reading metadata for: {}", path_string);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            return Err(format!("Requested path is not a directory:{}", use_path.to_str().unwrap()));
+        }
+        Ok(image_files)
+    }
+
     /// Function accepting input images, processing them and creating the output.
     /// Designed to be unit-testable
-    pub fn process_files(image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) {
+    pub fn process_files(output_file: &str, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
 
         // Decode all images and keep in memory for now
         let mut image_set = ImageSet::empty_set(alignment, width_limit, height_limit);
         for file in image_files {
             let path = Path::new(&file.full_path);
-            image_set.add_from_file_path(path);
+            if let Err(error) = image_set.add_from_file_path(path) {
+                return Err(error);
+            };
         }
 
         // Prepare data set before generating output
-        let new_file = Path::new("./stitch.jpg");
-        image_set.generate_output_file(new_file);
-        println!("Created file: {}", new_file.to_str().unwrap());
+        let new_file = Path::new(output_file);
+        image_set.generate_output_file(new_file)
     }
 
     fn empty_set(alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> ImageSet {
@@ -65,27 +121,33 @@ impl ImageSet {
             grid_size_cross_axis: 1,
             main_lines_with_full_size: 1,
             cross_axis_pixel_size_per_image: 1,
-            sizing_metadata: Vec::new(),
+            image_rects: Vec::new(),
             largest_main_line_pixels: 1
         }
     }
 
-    fn add_from_file_path(&mut self, path: &std::path::Path) {
-        let img: DynamicImage = image::open(&path).ok().expect("Failed to open an image");
+    fn add_from_file_path(&mut self, path: &std::path::Path) -> Result<(), String> {
+        let img: DynamicImage = match image::open(&path).ok() {
+            Some(image) => image,
+            None => return Err(String::from("Failed to open an image"))
+        };
         let w = img.width();
         let h = img.height();
         self.images.push(img);
-        println!("Path: {}, w: {}, h: {}", path.file_name().unwrap().to_str().unwrap(), w, h);
+        if let Some(file_name) = path.file_name() {
+            println!("Path: {}, w: {}, h: {}", file_name.to_str().unwrap(), w, h);
+        }
+        Ok(())
     }
 
-    fn generate_output_file(&mut self, file_path: &Path) {
+    fn generate_output_file(&mut self, file_path: &Path) -> Result<(), String> {
 
         // Prepare if not already done
         if !self.is_prepared {
             self.prepare();
         }
 
-        self.make_file(file_path);
+        self.make_file(file_path)
     }
 
     fn prepare(&mut self) {
@@ -186,7 +248,7 @@ impl ImageSet {
 
     /// Generates sizing_metadata and sets largest_main_line_pixels
     fn generate_sizing_metadata(&mut self) {
-        if !self.sizing_metadata.is_empty() {
+        if !self.image_rects.is_empty() {
             return;
         }
         if self.main_axis == Axis::Horizontal {
@@ -208,7 +270,7 @@ impl ImageSet {
             // Get sizing for this image
             let scaling_factor = (self.cross_axis_pixel_size_per_image as f64) / (image.height() as f64);
             let scaled_width = ((image.width() as f64) * scaling_factor) as u32;
-            self.sizing_metadata.push(SizingMetadata {
+            self.image_rects.push(ImageRect {
                 x: pen_x,
                 y: pen_y,
                 w: scaled_width,
@@ -242,7 +304,7 @@ impl ImageSet {
             // Get sizing for this image
             let scaling_factor = (self.cross_axis_pixel_size_per_image as f64) / (image.width() as f64);
             let scaled_height = ((image.height() as f64) * scaling_factor) as u32;
-            self.sizing_metadata.push(SizingMetadata {
+            self.image_rects.push(ImageRect {
                 x: pen_x,
                 y: pen_y,
                 w: self.cross_axis_pixel_size_per_image,
@@ -324,7 +386,7 @@ impl ImageSet {
         let using_scale: f64 = f64::min(width_scale, height_scale);
 
         // For each image, downscale its position and size
-        for sizing_data in self.sizing_metadata.iter_mut() {
+        for sizing_data in self.image_rects.iter_mut() {
             sizing_data.w = (sizing_data.w as f64 * using_scale) as u32;
             sizing_data.h = (sizing_data.h as f64 * using_scale) as u32;
             sizing_data.x = (sizing_data.x as f64 * using_scale) as u32;
@@ -336,7 +398,7 @@ impl ImageSet {
         self.largest_main_line_pixels = (self.largest_main_line_pixels as f64 * using_scale) as u32;
     }
 
-    fn make_file(&self, file_path: &Path) {
+    fn make_file(&self, file_path: &Path) -> Result<(), String> {
         if !self.is_prepared {
             panic!("Did not prepare image before attempting to save");
         }
@@ -356,12 +418,17 @@ impl ImageSet {
         let mut output_image = DynamicImage::new_rgba8(out_w, out_h);
         for i in 0..self.images.len() {
             let img = &self.images[i];
-            let metadata = &self.sizing_metadata[i];
-            let scaled_image = img.resize_exact(metadata.w, metadata.h, image::imageops::Lanczos3);
-            output_image.copy_from(&scaled_image, metadata.x, metadata.y);
+            let rect = &self.image_rects[i];
+            let scaled_image = img.resize_exact(rect.w, rect.h, image::imageops::Lanczos3);
+            if let Err(err) = output_image.copy_from(&scaled_image, rect.x, rect.y) {
+                return Err(format!("{} error while copying file #{}", err, i));
+            }
         }
 
         // Save the file
-        output_image.save(file_path).unwrap();
+        return match output_image.save(file_path) {
+            Ok(()) => Ok(()),
+            Err(error) => Err(format!("Failed to generate output file - {}", error))
+        }
     }
 }

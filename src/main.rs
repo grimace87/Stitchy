@@ -70,35 +70,24 @@ fn main() {
     // Verify a sensible number was given
     let number_of_files = match opt.number_of_files {
         Some(num) => num,
-        _ => panic!("You did not provide number_of_files and StructOpt did not catch this error")
+        _ => {
+            println!("You did not provide number_of_files and StructOpt did not catch this error");
+            return;
+        }
     };
     if number_of_files < 2 {
-        print_file_count_error();
+        println!("You must supply a number of images that is at least 2");
         return;
     }
 
-    // Iterate over files in the current directory, get all JPG and PNG images
-    let accepted_extensions: [&str; 5] = ["png", "jpg", "jpeg", "bmp", "gif"];
-    let current_path = std::env::current_dir().unwrap();
-    let mut image_files: Vec<FileData> = vec!();
-    if current_path.is_dir() {
-        for entry in std::fs::read_dir(current_path).unwrap() {
-            let path = entry.unwrap().path();
-            if path.is_file() {
-                if let Some(file_extension) = path.extension() {
-                    if let Some(ext_as_str) = file_extension.to_str() {
-                        if accepted_extensions.contains(&ext_as_str) {
-                            let useful_data = FileData {
-                                full_path: path.to_str().unwrap().to_string(),
-                                modify_time: path.metadata().unwrap().modified().unwrap()
-                            };
-                            image_files.push(useful_data);
-                        }
-                    }
-                }
-            }
+    // Get all accepted image files in the current directory
+    let mut image_files: Vec<FileData> = match ImageSet::image_files_in_directory(vec!()) {
+        Ok(files) => files,
+        Err(msg) => {
+            println!("{}", msg);
+            return;
         }
-    }
+    };
 
     // Verify at least n images were found, where n is the number requested
     if image_files.len() < number_of_files {
@@ -118,11 +107,11 @@ fn main() {
     };
 
     // Process the files and generate output
-    ImageSet::process_files(image_files, alignment, opt.maxw, opt.maxh);
-}
-
-fn print_file_count_error() {
-    println!("You must supply a number of images that is at least 2");
+    let file_name = "./stitch.jpg";
+    match ImageSet::process_files(file_name, image_files, alignment, opt.maxw, opt.maxh) {
+        Ok(()) => println!("Created file: {}", file_name),
+        Err(error) => println!("{}", error)
+    }
 }
 
 fn print_help() {
