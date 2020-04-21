@@ -31,7 +31,9 @@ pub mod tests {
         let mut test_file = current_path.clone();
         test_file.push("test.jpg");
         return if test_file.is_file() {
-            std::fs::remove_file(test_file.as_path()).map_err(|e| format!("Previous test file exists but couldn't be removed: {}", e))
+            std::fs::remove_file(test_file.as_path()).map_err(
+                |e| format!("Previous test file exists but couldn't be removed: {}", e)
+            )
         } else {
             Ok(())
         }
@@ -39,12 +41,46 @@ pub mod tests {
 
     #[test]
     pub fn test_types() {
+
+        // Clear existing file
         let clear_result = clear_output();
         assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
-        let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_types"));
+
+        // Get files from test directory
+        let retrieve_files_result =
+            ImageSet::image_files_in_directory(vec!("images", "testing", "test_types"));
         assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
-        let process_result: Result<(), String> = ImageSet::process_files("./test.jpg", retrieve_files_result.unwrap(), AlignmentMode::Grid, 0, 0);
+
+        // Process files, generate output
+        let image_files = retrieve_files_result.unwrap();
+        let process_result: Result<(), String> =
+            ImageSet::process_files("./test.jpg", image_files, AlignmentMode::Grid, 0, 0);
         assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+    }
+
+    #[test]
+    pub fn test_sizes() {
+
+        // Attempt increasing number of files, from 2 to 10
+        for i in 2..11 {
+
+            // Clear existing file
+            let clear_result = clear_output();
+            assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
+
+            // Get files from test directory
+            let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_sizes"));
+            assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
+
+            // Use a subset of the images, as per the loop index
+            let mut image_files = retrieve_files_result.unwrap();
+            image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
+            image_files.truncate(i);
+
+            // Process files, generate output
+            let process_result: Result<(), String> = ImageSet::process_files("./test.jpg", image_files, AlignmentMode::Grid, 0, 0);
+            assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+        }
     }
 }
 
