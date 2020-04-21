@@ -20,6 +20,34 @@ struct ImageRect {
     h: u32
 }
 
+#[cfg(test)]
+pub mod tests {
+    use crate::enums::AlignmentMode;
+    use crate::image_set::ImageSet;
+
+    fn clear_output() -> Result<(), String> {
+        let current_path = std::env::current_dir().unwrap();
+        assert!(current_path.is_dir());
+        let mut test_file = current_path.clone();
+        test_file.push("test.jpg");
+        return if test_file.is_file() {
+            std::fs::remove_file(test_file.as_path()).map_err(|e| format!("Previous test file exists but couldn't be removed: {}", e))
+        } else {
+            Ok(())
+        }
+    }
+
+    #[test]
+    pub fn test_types() {
+        let clear_result = clear_output();
+        assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
+        let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_types"));
+        assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
+        let process_result: Result<(), String> = ImageSet::process_files("./test.jpg", retrieve_files_result.unwrap(), AlignmentMode::Grid, 0, 0);
+        assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+    }
+}
+
 pub struct ImageSet {
     images: Vec<image::DynamicImage>,
     alignment: AlignmentMode,
