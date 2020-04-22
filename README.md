@@ -36,9 +36,6 @@ binaries are distributed at the moment, so it must be built from source:
 
 ### Future Plans
 
-Here are some features I would like to add in the near future:
+Here are some things I would like to add in the near future:
 
-- Generate output files using incrementing suffixes where an output file already exists,
-  i.e. "stitch_1.jpg", "stitch_2.jpg" etc. if "stitch.jpg" already exists
-- Accept quality setting for JPEG output
-- Add more unit tests to test the tool's various arguments
+- More unit tests to test the tool's various arguments

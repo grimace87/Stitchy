@@ -3,6 +3,7 @@ pub mod enums;
 
 use enums::AlignmentMode;
 use image_set::{FileData, ImageSet};
+use std::path::{PathBuf, Path};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -123,12 +124,48 @@ fn main() {
         _ => AlignmentMode::Grid
     };
 
+    // Get the next file name that can be used (stitch.jpeg, stitch_1.jpg, stitch_2.jpg, ...)
+    let file_name = match next_available_image_name() {
+        Ok(name) => name,
+        Err(error) => {
+            println!("{}", error);
+            return;
+        }
+    };
+    let output_file_path = Path::new(&file_name);
+
     // Process the files and generate output
-    let file_name = "./stitch.jpg";
-    match ImageSet::process_files(file_name, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
+    match ImageSet::process_files(&output_file_path, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
         Ok(()) => println!("Created file: {}", file_name),
         Err(error) => println!("{}", error)
     }
+}
+
+fn next_available_image_name() -> Result<String, String> {
+
+    // Get current path, check if the default file name exists, if not return it
+    let mut current_path: PathBuf = match std::env::current_dir() {
+        Ok(dir) => dir,
+        Err(_) => return Err(String::from("Could not access current directory"))
+    };
+    current_path.push("stitch.jpg");
+    if !current_path.is_file() {
+        return Ok(String::from("stitch.jpg"));
+    }
+    current_path.pop();
+
+    // Check file names until a usable one is found
+    let mut i = 1usize;
+    while i < 1000 {
+        let file_name: String = format!("stitch_{}.jpg", i);
+        current_path.push(&file_name);
+        if !current_path.is_file() {
+            return Ok(file_name);
+        }
+        current_path.pop();
+        i = i + 1;
+    };
+    return Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."));
 }
 
 fn print_help() {

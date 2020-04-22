@@ -42,6 +42,7 @@ pub mod tests {
 
     #[test]
     pub fn test_types() {
+        use std::path::Path;
 
         // Clear existing file
         let clear_result = clear_output();
@@ -53,14 +54,16 @@ pub mod tests {
         assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
 
         // Process files, generate output
+        let output_path = Path::new("./test.jpg");
         let image_files = retrieve_files_result.unwrap();
         let process_result: Result<(), String> =
-            ImageSet::process_files("./test.jpg", 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            ImageSet::process_files(&output_path, 90usize, image_files, AlignmentMode::Grid, 0, 0);
         assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
     }
 
     #[test]
     pub fn test_sizes() {
+        use std::path::Path;
 
         // Attempt increasing number of files, from 2 to 10
         for i in 2..11 {
@@ -80,7 +83,8 @@ pub mod tests {
             image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time));
 
             // Process files, generate output
-            let process_result: Result<(), String> = ImageSet::process_files("./test.jpg", 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            let output_path = Path::new("./test.jpg");
+            let process_result: Result<(), String> = ImageSet::process_files(&output_path, 90usize, image_files, AlignmentMode::Grid, 0, 0);
             assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
         }
     }
@@ -128,22 +132,28 @@ impl ImageSet {
             for entry in std::fs::read_dir(use_path).unwrap() {
                 let path = entry.unwrap().path();
                 if path.is_file() {
-                    if let Some(file_extension) = path.extension() {
-                        if let Some(ext_as_str) = file_extension.to_str() {
-                            if accepted_extensions.contains(&ext_as_str) {
-                                if let Some(path_string) = path.to_str() {
-                                    if let Ok(metadata) = path.metadata() {
-                                        if let Ok(modify_date) = metadata.modified() {
-                                            let useful_data = FileData {
-                                                full_path: path_string.to_string(),
-                                                modify_time: modify_date
-                                            };
-                                            image_files.push(useful_data);
-                                        } else {
-                                            println!("Failed reading modify date for: {}", path_string);
+                    if let Some(file_stem) = path.file_stem() {
+                        if let Some(stem_as_str) = file_stem.to_str() {
+                            if !stem_as_str.starts_with("stitch") {
+                                if let Some(file_extension) = path.extension() {
+                                    if let Some(ext_as_str) = file_extension.to_str() {
+                                        if accepted_extensions.contains(&ext_as_str) {
+                                            if let Some(path_string) = path.to_str() {
+                                                if let Ok(metadata) = path.metadata() {
+                                                    if let Ok(modify_date) = metadata.modified() {
+                                                        let useful_data = FileData {
+                                                            full_path: path_string.to_string(),
+                                                            modify_time: modify_date
+                                                        };
+                                                        image_files.push(useful_data);
+                                                    } else {
+                                                        println!("Failed reading modify date for: {}", path_string);
+                                                    }
+                                                } else {
+                                                    println!("Failed reading metadata for: {}", path_string);
+                                                }
+                                            }
                                         }
-                                    } else {
-                                        println!("Failed reading metadata for: {}", path_string);
                                     }
                                 }
                             }
@@ -159,7 +169,7 @@ impl ImageSet {
 
     /// Function accepting input images, processing them and creating the output.
     /// Designed to be unit-testable
-    pub fn process_files(output_file: &str, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
+    pub fn process_files(output_file_path: &Path, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
 
         // Decode all images and keep in memory for now
         let mut image_set = ImageSet::empty_set(alignment, width_limit, height_limit);
@@ -171,8 +181,7 @@ impl ImageSet {
         }
 
         // Prepare data set before generating output
-        let new_file = Path::new(output_file);
-        image_set.generate_output_file(new_file, quality)
+        image_set.generate_output_file(output_file_path, quality)
     }
 
     fn empty_set(alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> ImageSet {
