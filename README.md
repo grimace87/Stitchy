@@ -40,5 +40,5 @@ Here are some features I would like to add in the near future:
 
 - Generate output files using incrementing suffixes where an output file already exists,
   i.e. "stitch_1.jpg", "stitch_2.jpg" etc. if "stitch.jpg" already exists
-- Stitch files in ascending date order by default, not the reverse, but add a flag to output reversed
+- Accept quality setting for JPEG output
 - Add more unit tests to test the tool's various arguments

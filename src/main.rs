@@ -30,6 +30,9 @@ struct Opt {
     #[structopt(long, default_value="0")]
     maxh: usize,
 
+    #[structopt(short, long)]
+    reverse: bool,
+
     #[structopt(required_unless_one = &["help", "version"])]
     number_of_files: Option<usize>
 }
@@ -99,6 +102,11 @@ fn main() {
     image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
     image_files.truncate(number_of_files);
 
+    // Revert to chronological order, unless the reverse order wa requested
+    if !opt.reverse {
+        image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time));
+    }
+
     // Determine alignment mode to use
     let alignment: AlignmentMode = match (opt.horizontal, opt.vertical) {
         (true, false) => AlignmentMode::Horizontal,
@@ -132,6 +140,7 @@ fn print_help() {
     println!("  --maxw=n          Limit output width to n pixels at most");
     println!("  --maxh=n          Limit output height to n pixels at most");
     println!("  --maxd=n          Limit output width and height to n pixels at most");
+    println!("  --reverse, -r     Stitch file in reverse chronological order");
 }
 
 fn print_version() {

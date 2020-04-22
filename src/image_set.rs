@@ -76,6 +76,7 @@ pub mod tests {
             let mut image_files = retrieve_files_result.unwrap();
             image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
             image_files.truncate(i);
+            image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time));
 
             // Process files, generate output
             let process_result: Result<(), String> = ImageSet::process_files("./test.jpg", image_files, AlignmentMode::Grid, 0, 0);
