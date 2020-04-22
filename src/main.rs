@@ -33,6 +33,9 @@ struct Opt {
     #[structopt(short, long)]
     reverse: bool,
 
+    #[structopt(long, default_value="100")]
+    quality: usize,
+
     #[structopt(required_unless_one = &["help", "version"])]
     number_of_files: Option<usize>
 }
@@ -68,6 +71,12 @@ fn main() {
     if opt.maxd > 0 {
         opt.maxw = opt.maxd;
         opt.maxh = opt.maxd;
+    }
+
+    // Verify quality setting is within the appropriate range
+    if opt.quality == 0 || opt.quality > 100 {
+        println!("The quality setting must be in the range of 1 to 100 inclusive.");
+        return;
     }
 
     // Verify a sensible number was given
@@ -116,7 +125,7 @@ fn main() {
 
     // Process the files and generate output
     let file_name = "./stitch.jpg";
-    match ImageSet::process_files(file_name, image_files, alignment, opt.maxw, opt.maxh) {
+    match ImageSet::process_files(file_name, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
         Ok(()) => println!("Created file: {}", file_name),
         Err(error) => println!("{}", error)
     }
@@ -141,6 +150,7 @@ fn print_help() {
     println!("  --maxh=n          Limit output height to n pixels at most");
     println!("  --maxd=n          Limit output width and height to n pixels at most");
     println!("  --reverse, -r     Stitch file in reverse chronological order");
+    println!("  --quality=n       Set the output quality from 1 to 100, defaults to 100");
 }
 
 fn print_version() {
