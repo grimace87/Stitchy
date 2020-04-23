@@ -33,9 +33,3 @@ binaries are distributed at the moment, so it must be built from source:
 - This project has currently only been tested (minimally) on 64-bit Windows using nightly Rust
   and the GNU toolchain, i.e. `nightly-x86_64-pc-windows-gnu`. Testing the MSVC toolchain, as
   well as the GNU toolchain on Linux, is likely to come soon.
-
-### Future Plans
-
-Here are some things I would like to add in the near future:
-
-- More unit tests to test the tool's various arguments
