@@ -1,7 +1,21 @@
 
 # Stitchy
 
-Joins multiple existing image files into a single output.
+Joins multiple existing image files into a single output. Supports various flags for
+arranging the output or scaling down to desirable dimensions.
+
+Images of the same size will stitch together neatly:
+
+| Input files | | | Output |
+| --- | --- | --- | --- |
+| ![Sample 1](./images/demo/Screen1.jpg) | ![Sample 2](./images/demo/Screen2.jpg) | ![Sample 3](./images/demo/Screen3.jpg) | ![Sample Output](./images/demo/ScreenStitch.jpg) |
+
+If the images are more irregular in shape, the tool will attempt to arrange them
+as neatly as possible, and scale some images in the process:
+
+| Input files | | | Output |
+| --- | --- | --- | --- |
+| ![Sample 1](./images/demo/Tree1.jpg) | ![Sample 2](./images/demo/Tree2.jpg) | ![Sample 3](./images/demo/Tree3.jpg) | ![Sample Output](./images/demo/TreeStitch.jpg) |
 
 ### Running
 
@@ -16,7 +30,7 @@ and outputting a file "stitch.jpg".
 ### Building
 
 This project is a Rust binary project, intended to be used as a command-line tool. No
-binaries are distributed at the moment, so it must be built from source:
+binaries are distributed, so it must be built from source:
 
 - Install Rust and Cargo if you don't already have them - see the official documentation
   at https://www.rust-lang.org/tools/install to install `rustup` and `cargo` and set up a
