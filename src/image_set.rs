@@ -130,36 +130,67 @@ impl ImageSet {
         let mut image_files: Vec<FileData> = vec!();
         if use_path.is_dir() {
             for entry in std::fs::read_dir(use_path).unwrap() {
+
+                // Check that the path is a file
                 let path = entry.unwrap().path();
-                if path.is_file() {
-                    if let Some(file_stem) = path.file_stem() {
-                        if let Some(stem_as_str) = file_stem.to_str() {
-                            if !stem_as_str.starts_with("stitch") {
-                                if let Some(file_extension) = path.extension() {
-                                    if let Some(ext_as_str) = file_extension.to_str() {
-                                        if accepted_extensions.contains(&ext_as_str) {
-                                            if let Some(path_string) = path.to_str() {
-                                                if let Ok(metadata) = path.metadata() {
-                                                    if let Ok(modify_date) = metadata.modified() {
-                                                        let useful_data = FileData {
-                                                            full_path: path_string.to_string(),
-                                                            modify_time: modify_date
-                                                        };
-                                                        image_files.push(useful_data);
-                                                    } else {
-                                                        println!("Failed reading modify date for: {}", path_string);
-                                                    }
-                                                } else {
-                                                    println!("Failed reading metadata for: {}", path_string);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if !path.is_file() {
+                    continue;
                 }
+
+                // Get the 'stem' (file name before the extension), skip it if it looks like a
+                // previous stitch
+                let stem_not_stitch: Option<()> = (|| {
+                    let file_stem = path
+                        .file_stem()?
+                        .to_str()?;
+                    if file_stem.starts_with("stitch") {
+                        None
+                    } else {
+                        Some(())
+                    }
+                })();
+                if stem_not_stitch.is_none() {
+                    continue;
+                }
+
+                // Get the extension and check it is accepted
+                let extension_acceptable: Option<()> = (|| {
+                    let extension = path
+                        .extension()?
+                        .to_str()?;
+                    if accepted_extensions.contains(&extension) {
+                        None
+                    } else {
+                        Some(())
+                    }
+                })();
+                if extension_acceptable.is_none() {
+                    continue;
+                }
+
+                // Get file modify date from its metadata
+                let modify_time: Result<SystemTime, String> = (|| {
+                    let path_str = path
+                        .to_str()
+                        .ok_or(Err(""))?;
+                    let metadata = path
+                        .metadata()
+                        .map_err(|| format!("Failed reading metadata for: {}", path_string))?;
+                    metadata
+                        .modified()
+                        .map_err(|| format!("Failed reading modify date for: {}", path_string))
+                })();
+                if modify_time.is_err() {
+                    println!(modify_time.unwrap_err());
+                    continue;
+                }
+
+                // All seems well, push this file's properties into the vector
+                let useful_data = FileData {
+                    full_path: path_string.to_string(),
+                    modify_time: modify_time.unwrap()
+                };
+                image_files.push(useful_data);
             }
         } else {
             return Err(format!("Requested path is not a directory:{}", use_path.to_str().unwrap()));

@@ -13,9 +13,9 @@ Images of the same size will stitch together neatly:
 If the images are more irregular in shape, the tool will attempt to arrange them
 as neatly as possible, and scale some images in the process:
 
-| Input files | | | Output |
-| --- | --- | --- | --- |
-| ![Sample 1](./images/demo/Tree1.jpg) | ![Sample 2](./images/demo/Tree2.jpg) | ![Sample 3](./images/demo/Tree3.jpg) | ![Sample Output](./images/demo/TreeStitch.jpg) |
+| Input files | | | | Output |
+| --- | --- | --- | --- | --- |
+| ![Sample 1](./images/demo/Tree1.jpg) | ![Sample 2](./images/demo/Tree2.jpg) | ![Sample 3](./images/demo/Tree3.jpg) | ![Sample 3](./images/demo/Tree4.jpg) | ![Sample Output](./images/demo/TreeStitch.jpg) |
 
 ### Running
 
@@ -39,6 +39,10 @@ binaries are distributed, so it must be built from source:
 - Inside the root project directory, run `cargo build --release`
 - Suggested - copy the binary created in `./target/release` to somewhere you'd like to keep
   binary tools, and add that location to your path
+
+Note that the following requirements exist due to dependencies of this project:
+
+- Minimum Rust version is 1.34
 
 ### Details
 
