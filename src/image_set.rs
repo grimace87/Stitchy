@@ -158,7 +158,7 @@ impl ImageSet {
                     let extension = path
                         .extension()?
                         .to_str()?;
-                    if accepted_extensions.contains(&extension) {
+                    if !accepted_extensions.contains(&extension) {
                         None
                     } else {
                         Some(())
@@ -168,26 +168,28 @@ impl ImageSet {
                     continue;
                 }
 
+                // Get path as str
+                let path_str = match path.to_str() {
+                    Some(path_as_str) => path_as_str,
+                    None => continue
+                };
+
                 // Get file modify date from its metadata
                 let modify_time: Result<SystemTime, String> = (|| {
-                    let path_str = path
-                        .to_str()
-                        .ok_or(Err(""))?;
-                    let metadata = path
+                    path
                         .metadata()
-                        .map_err(|| format!("Failed reading metadata for: {}", path_string))?;
-                    metadata
+                        .map_err(|_| format!("Failed reading metadata for: {}", path_str))?
                         .modified()
-                        .map_err(|| format!("Failed reading modify date for: {}", path_string))
+                        .map_err(|_| format!("Failed reading modify date for: {}", path_str))
                 })();
                 if modify_time.is_err() {
-                    println!(modify_time.unwrap_err());
+                    println!("{}", modify_time.unwrap_err());
                     continue;
                 }
 
                 // All seems well, push this file's properties into the vector
                 let useful_data = FileData {
-                    full_path: path_string.to_string(),
+                    full_path: path_str.to_string(),
                     modify_time: modify_time.unwrap()
                 };
                 image_files.push(useful_data);
