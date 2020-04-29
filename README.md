@@ -27,22 +27,21 @@ where `n` is the number of images you would like to stitch together into one. Th
 will take the `n` most recent files and arrange them in a grid, resizing where needed,
 and outputting a file "stitch.jpg".
 
-### Building
+Various flags exist to adjust how the output is created. Run `stitchy --help` to see a list
+of these flags.
 
-This project is a Rust binary project, intended to be used as a command-line tool. No
-binaries are distributed, so it must be built from source:
+### Installing
 
 - Install Rust and Cargo if you don't already have them - see the official documentation
   at https://www.rust-lang.org/tools/install to install `rustup` and `cargo` and set up a
   toolchain
-- Clone this repository
-- Inside the root project directory, run `cargo build --release`
-- Suggested - copy the binary created in `./target/release` to somewhere you'd like to keep
-  binary tools, and add that location to your path
+- Run `cargo install stitchy`
 
-Note that the following requirements exist due to dependencies of this project:
+That's it! The binary will be built from source and placed in the `.cargo` directory
+inside your home folder. This should be available on your PATH if Cargo is installed
+correctly.
 
-- Minimum Rust version is 1.34
+Note that this crate will only compile with Rust version 1.34 and up, due to a dependency.
 
 ### Details
 

@@ -16,5 +16,5 @@ exclude = [
 ]
 
 [dependencies]
-structopt = { version = "0.3.3", default-features = false }
+structopt = { version = "0.3.14", default-features = false }
 image = { version = "0.23.4", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
