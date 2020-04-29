@@ -163,9 +163,9 @@ fn next_available_image_name() -> Result<String, String> {
             return Ok(file_name);
         }
         current_path.pop();
-        i = i + 1;
+        i += 1;
     };
-    return Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."));
+    Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."))
 }
 
 fn print_help() {

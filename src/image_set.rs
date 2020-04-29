@@ -345,10 +345,8 @@ impl ImageSet {
                 if image.height() < smallest_size {
                     smallest_size = image.height();
                 }
-            } else {
-                if image.width() < smallest_size {
-                    smallest_size = image.width();
-                }
+            } else if image.width() < smallest_size {
+                smallest_size = image.width();
             }
         }
         self.cross_axis_pixel_size_per_image = smallest_size;
@@ -512,15 +510,14 @@ impl ImageSet {
         }
 
         // Determine output file dimensions
-        let out_w;
-        let out_h;
-        if self.main_axis == Axis::Horizontal {
-            out_w = self.largest_main_line_pixels;
-            out_h = self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis;
-        } else {
-            out_w = self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis;
-            out_h = self.largest_main_line_pixels;
-        }
+        let out_w = match self.main_axis {
+            Axis::Horizontal => self.largest_main_line_pixels,
+            _ => self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis
+        };
+        let out_h = match self.main_axis {
+            Axis::Horizontal => self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis,
+            _ => self.largest_main_line_pixels
+        };
 
         // Create the image and paint individual images
         let mut output_image = DynamicImage::new_rgba8(out_w, out_h);
@@ -535,7 +532,7 @@ impl ImageSet {
 
         // Save the file
         let mut file_writer = File::create(file_path).unwrap();
-        return match output_image.write_to(&mut file_writer, ImageOutputFormat::Jpeg(quality as u8)) {
+        match output_image.write_to(&mut file_writer, ImageOutputFormat::Jpeg(quality as u8)) {
             Ok(()) => Ok(()),
             Err(error) => Err(format!("Failed to generate output file - {}", error))
         }
