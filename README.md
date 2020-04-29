@@ -37,7 +37,7 @@ of these flags.
   toolchain
 - Run `cargo install stitchy`
 
-That's it! The binary will be built from source and placed in the `.cargo` directory
+That's it! The binary will be built from source and placed in the `.cargo/bin` directory
 inside your home folder. This should be available on your PATH if Cargo is installed
 correctly.
 
