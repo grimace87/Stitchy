@@ -9,6 +9,11 @@ repository = "https://github.com/grimace87/Stitchy"
 readme = "README.md"
 keywords = ["image", "join"]
 categories = ["command-line-utilities", "multimedia::images"]
+exclude = [
+    "/images/testing/",
+    "/.dockerignore",
+    "/.Dockerfile"
+]
 
 [dependencies]
 structopt = { version = "0.3.3", default-features = false }
