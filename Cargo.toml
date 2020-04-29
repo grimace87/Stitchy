@@ -3,6 +3,12 @@ name = "stitchy"
 version = "0.1.2"
 authors = ["Thomas Reichert"]
 edition = "2018"
+license = "MIT"
+description = "Combine multiple image files into a single image"
+repository = "https://github.com/grimace87/Stitchy"
+readme = "README.md"
+keywords = ["image", "join"]
+categories = ["command-line-utilities", "multimedia::images"]
 
 [dependencies]
 structopt = { version = "0.3.3", default-features = false }
