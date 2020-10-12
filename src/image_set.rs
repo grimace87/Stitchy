@@ -57,7 +57,7 @@ pub mod tests {
         let output_path = Path::new("./test.jpg");
         let image_files = retrieve_files_result.unwrap();
         let process_result: Result<(), String> =
-            ImageSet::process_files(&output_path, 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            ImageSet::process_files(&output_path, true, 90usize, image_files, AlignmentMode::Grid, 0, 0);
         assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
     }
 
@@ -84,7 +84,7 @@ pub mod tests {
 
             // Process files, generate output
             let output_path = Path::new("./test.jpg");
-            let process_result: Result<(), String> = ImageSet::process_files(&output_path, 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            let process_result: Result<(), String> = ImageSet::process_files(&output_path, true, 90usize, image_files, AlignmentMode::Grid, 0, 0);
             assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
         }
     }
@@ -202,7 +202,7 @@ impl ImageSet {
 
     /// Function accepting input images, processing them and creating the output.
     /// Designed to be unit-testable
-    pub fn process_files(output_file_path: &Path, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
+    pub fn process_files(output_file_path: &Path, as_jpeg: bool, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
 
         // Decode all images and keep in memory for now
         let mut image_set = ImageSet::empty_set(alignment, width_limit, height_limit);
@@ -214,7 +214,7 @@ impl ImageSet {
         }
 
         // Prepare data set before generating output
-        image_set.generate_output_file(output_file_path, quality)
+        image_set.generate_output_file(output_file_path, as_jpeg, quality)
     }
 
     fn empty_set(alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> ImageSet {
@@ -248,14 +248,14 @@ impl ImageSet {
         Ok(())
     }
 
-    fn generate_output_file(&mut self, file_path: &Path, quality: usize) -> Result<(), String> {
+    fn generate_output_file(&mut self, file_path: &Path, as_jpeg: bool, quality: usize) -> Result<(), String> {
 
         // Prepare if not already done
         if !self.is_prepared {
             self.prepare();
         }
 
-        self.make_file(file_path, quality)
+        self.make_file(file_path, as_jpeg, quality)
     }
 
     fn prepare(&mut self) {
@@ -504,7 +504,7 @@ impl ImageSet {
         self.largest_main_line_pixels = (self.largest_main_line_pixels as f64 * using_scale) as u32;
     }
 
-    fn make_file(&self, file_path: &Path, quality: usize) -> Result<(), String> {
+    fn make_file(&self, file_path: &Path, as_jpeg: bool, quality: usize) -> Result<(), String> {
         if !self.is_prepared {
             panic!("Did not prepare image before attempting to save");
         }
@@ -532,7 +532,11 @@ impl ImageSet {
 
         // Save the file
         let mut file_writer = File::create(file_path).unwrap();
-        match output_image.write_to(&mut file_writer, ImageOutputFormat::Jpeg(quality as u8)) {
+        let format = match as_jpeg {
+            true => ImageOutputFormat::Jpeg(quality as u8),
+            false => ImageOutputFormat::Png
+        };
+        match output_image.write_to(&mut file_writer, format) {
             Ok(()) => Ok(()),
             Err(error) => Err(format!("Failed to generate output file - {}", error))
         }

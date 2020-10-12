@@ -34,6 +34,12 @@ struct Opt {
     #[structopt(short, long)]
     reverse: bool,
 
+    #[structopt(long)]
+    jpeg: bool,
+
+    #[structopt(long)]
+    png: bool,
+
     #[structopt(long, default_value="100")]
     quality: usize,
 
@@ -74,9 +80,20 @@ fn main() {
         opt.maxh = opt.maxd;
     }
 
-    // Verify quality setting is within the appropriate range
+    // Choose JPEG or PNG or neither, not both
+    if opt.jpeg && opt.png {
+        println!("You cannot specify both the jpeg and png flags; please specify only one or neither.");
+        return;
+    }
+    opt.jpeg = !opt.png;
+
+    // Verify quality setting is within the appropriate range, and is only used for JPEG
     if opt.quality == 0 || opt.quality > 100 {
         println!("The quality setting must be in the range of 1 to 100 inclusive.");
+        return;
+    }
+    if opt.quality != 100 && opt.png {
+        println!("The quality setting cannot be used for PNG output.");
         return;
     }
 
@@ -125,7 +142,7 @@ fn main() {
     };
 
     // Get the next file name that can be used (stitch.jpeg, stitch_1.jpg, stitch_2.jpg, ...)
-    let file_name = match next_available_image_name() {
+    let file_name = match next_available_image_name(&opt) {
         Ok(name) => name,
         Err(error) => {
             println!("{}", error);
@@ -135,13 +152,18 @@ fn main() {
     let output_file_path = Path::new(&file_name);
 
     // Process the files and generate output
-    match ImageSet::process_files(&output_file_path, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
+    match ImageSet::process_files(&output_file_path, opt.jpeg, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
         Ok(()) => println!("Created file: {}", file_name),
         Err(error) => println!("{}", error)
     }
 }
 
-fn next_available_image_name() -> Result<String, String> {
+fn next_available_image_name(options: &Opt) -> Result<String, String> {
+
+    let extension = match options.jpeg {
+        true => String::from(".jpg"),
+        false => String::from(".png")
+    };
 
     // Get current path, check if the default file name exists, if not return it
     let mut current_path: PathBuf = match std::env::current_dir() {
@@ -150,20 +172,36 @@ fn next_available_image_name() -> Result<String, String> {
     };
     current_path.push("stitch.jpg");
     if !current_path.is_file() {
-        return Ok(String::from("stitch.jpg"));
+        current_path.pop();
+        current_path.push("stitch.png");
+        if !current_path.is_file() {
+            return Ok(format!("stitch{}", extension));
+        }
     }
     current_path.pop();
 
     // Check file names until a usable one is found
     let mut i = 1usize;
     while i < 1000 {
-        let file_name: String = format!("stitch_{}.jpg", i);
-        current_path.push(&file_name);
-        if !current_path.is_file() {
-            return Ok(file_name);
+
+        // Check for JPG
+        let jpg_file_name: String = format!("stitch_{}.jpg", i);
+        current_path.push(&jpg_file_name);
+        if current_path.is_file() {
+            current_path.pop();
+            i += 1;
+            continue;
         }
-        current_path.pop();
-        i += 1;
+
+        // Check for PNG
+        let png_file_name: String = format!("stitch_{}.png", i);
+        current_path.push(&png_file_name);
+        if current_path.is_file() {
+            current_path.pop();
+            i += 1;
+            continue;
+        }
+        return Ok(format!("stitch_{}{}", i, extension));
     };
     Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."))
 }
