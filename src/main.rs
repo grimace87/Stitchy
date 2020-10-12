@@ -105,8 +105,8 @@ fn main() {
             return;
         }
     };
-    if number_of_files < 2 {
-        println!("You must supply a number of images that is at least 2");
+    if number_of_files == 0 {
+        println!("The number of images to stitch must be at least 1.");
         return;
     }
 
