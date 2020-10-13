@@ -49,6 +49,12 @@ struct Opt {
     #[structopt(long, default_value="100")]
     quality: usize,
 
+    #[structopt(long)]
+    ascalpha: bool,
+
+    #[structopt(long)]
+    descalpha: bool,
+
     #[structopt(required_unless_one = &["help", "version"])]
     number_of_files: Option<usize>
 }
@@ -63,6 +69,12 @@ fn main() {
     }
     if opt.version {
         print_version();
+        return;
+    }
+
+    // Verify not requesting both ascending and descending alphabetical order
+    if opt.ascalpha && opt.descalpha {
+        println!("If selecting files based on alphabetical order, choose ascending or descending, not both.");
         return;
     }
 
@@ -143,13 +155,24 @@ fn main() {
         return;
     }
 
-    // Sort files by modify date and take the most recent n files
-    image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
+    // Sort by ascending or descending alphabetical order, or by descending-order modify date, then take n.
+    // Idea of 'naturally ordered' means that after taking n from start of the vector, the files will
+    // be in the order in which they should be stitched, though the 'reverse' flag inverts this behaviour.
+    let naturally_ordered: bool = if opt.ascalpha {
+        image_files.sort_unstable_by(|a, b| a.full_path.cmp(&b.full_path));
+        true
+    } else if opt.descalpha {
+        image_files.sort_unstable_by(|a, b| a.full_path.cmp(&b.full_path).reverse());
+        true
+    } else {
+        image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
+        false
+    };
     image_files.truncate(number_of_files);
 
-    // Revert to chronological order, unless the reverse order wa requested
-    if !opt.reverse {
-        image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time));
+    // Revert to chronological order, unless the reverse order was requested
+    if opt.reverse ^ !naturally_ordered {
+        image_files.reverse();
     }
 
     // Determine alignment mode to use
@@ -254,12 +277,14 @@ fn print_help() {
     println!();
     println!("Basic usage:");
     println!("  stitchy n");
-    println!("  where n is the number of images to use. The most recent images available will be");
-    println!("  used. There must be at least that many in the current directory.");
+    println!("  where n is the number of images to use. There must be at least that many in the");
+    println!("  current directory. By default, The most recent images available will be used.");
     println!();
     println!("Supported flags:");
     println!("  --help            Print this help");
     println!("  --version         Print the installed version number");
+    println!("  --ascalpha        Select first files based on ascending alphabetical order");
+    println!("  --descalpha       Select first files based on descending alphabetical order");
     println!("  --horizontal, -h  Force stitching across a single row only");
     println!("  --vertical, -v    Force stitching down a single column only");
     println!("  --maxw=n          Limit output width to n pixels at most");
