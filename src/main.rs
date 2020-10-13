@@ -189,7 +189,7 @@ fn main() {
             image_format = ImageFormat::Jpeg;
         }
         if image_format != ImageFormat::Jpeg && opt.quality != 100 {
-            println!("Output file with extension {} cannot use a quality setting.", image_format.get_main_extension());
+            println!("Output file with extension .{} cannot use a quality setting.", image_format.get_main_extension());
             return;
         }
     }
@@ -239,12 +239,13 @@ fn next_available_image_name(image_format: &ImageFormat) -> Result<String, Strin
         current_path.push(format!("stitch.{}", extension));
         if current_path.is_file() {
             un_numbered_file_exists = true;
+            current_path.pop();
             break;
         }
         current_path.pop();
     }
     if !un_numbered_file_exists {
-        return Ok(format!("stitch{}", target_extension));
+        return Ok(format!("stitch.{}", target_extension));
     }
 
     // Check file names until a usable one is found
@@ -263,7 +264,7 @@ fn next_available_image_name(image_format: &ImageFormat) -> Result<String, Strin
             }
         }
         if !numbered_file_exists {
-            return Ok(format!("stitch_{}{}", i, target_extension));
+            return Ok(format!("stitch_{}.{}", i, target_extension));
         }
         i += 1;
     };

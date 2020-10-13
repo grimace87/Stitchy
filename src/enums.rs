@@ -62,11 +62,11 @@ impl ImageFormat {
 
     pub fn get_main_extension(&self) -> &'static str {
         match self {
-            ImageFormat::Jpeg => ".jpg",
-            ImageFormat::Png => ".png",
-            ImageFormat::Gif => ".gif",
-            ImageFormat::Bmp => ".bmp",
-            ImageFormat::Unspecified => ".jpg"
+            ImageFormat::Jpeg => "jpg",
+            ImageFormat::Png => "png",
+            ImageFormat::Gif => "gif",
+            ImageFormat::Bmp => "bmp",
+            ImageFormat::Unspecified => "jpg"
         }
     }
 
