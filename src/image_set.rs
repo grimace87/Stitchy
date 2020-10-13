@@ -261,7 +261,7 @@ impl ImageSet {
     fn add_from_file_path(&mut self, path: &std::path::Path) -> Result<(), String> {
         let img: DynamicImage = match image::open(&path).ok() {
             Some(image) => image,
-            None => return Err(String::from("Failed to open an image"))
+            None => return Err(format!("Failed to open: {:?}", path))
         };
         let w = img.width();
         let h = img.height();
