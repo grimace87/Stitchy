@@ -1,7 +1,7 @@
 pub mod image_set;
 pub mod enums;
 
-use enums::AlignmentMode;
+use enums::{AlignmentMode, ImageFormat};
 use image_set::{FileData, ImageSet};
 use std::path::{PathBuf, Path};
 use structopt::StructOpt;
@@ -39,6 +39,12 @@ struct Opt {
 
     #[structopt(long)]
     png: bool,
+
+    #[structopt(long)]
+    gif: bool,
+
+    #[structopt(long)]
+    bmp: bool,
 
     #[structopt(long, default_value="100")]
     quality: usize,
@@ -80,20 +86,32 @@ fn main() {
         opt.maxh = opt.maxd;
     }
 
-    // Choose JPEG or PNG or neither, not both
-    if opt.jpeg && opt.png {
-        println!("You cannot specify both the jpeg and png flags; please specify only one or neither.");
+    // Choose one format only, or none at all
+    let flag_set: [bool; 4] = [opt.jpeg, opt.png, opt.gif, opt.bmp];
+    let format_flag_count: i32 = flag_set.iter().map(|&f| { if f { 1 } else { 0 } }).sum();
+    if format_flag_count > 1 {
+        println!("You cannot specify more than one of image types JPEG, PNG, GIF and BMP.");
         return;
     }
-    opt.jpeg = !opt.png;
+    let mut image_format: ImageFormat = if opt.jpeg {
+        ImageFormat::Jpeg
+    } else if opt.png {
+        ImageFormat::Png
+    } else if opt.gif {
+        ImageFormat::Gif
+    } else if opt.bmp {
+        ImageFormat::Bmp
+    } else {
+        ImageFormat::Unspecified
+    };
 
     // Verify quality setting is within the appropriate range, and is only used for JPEG
     if opt.quality == 0 || opt.quality > 100 {
         println!("The quality setting must be in the range of 1 to 100 inclusive.");
         return;
     }
-    if opt.quality != 100 && opt.png {
-        println!("The quality setting cannot be used for PNG output.");
+    if opt.quality != 100 && image_format != ImageFormat::Jpeg && image_format != ImageFormat::Unspecified {
+        println!("The quality setting can only be used for JPEG output.");
         return;
     }
 
@@ -141,8 +159,20 @@ fn main() {
         _ => AlignmentMode::Grid
     };
 
+    // Check if no format was specified, but all source images are the same
+    if image_format == ImageFormat::Unspecified {
+        image_format = common_format_in(&image_files);
+        if image_format == ImageFormat::Unspecified {
+            image_format = ImageFormat::Jpeg;
+        }
+        if image_format != ImageFormat::Jpeg && opt.quality != 100 {
+            println!("Output file with extension {} cannot use a quality setting.", image_format.get_main_extension());
+            return;
+        }
+    }
+
     // Get the next file name that can be used (stitch.jpeg, stitch_1.jpg, stitch_2.jpg, ...)
-    let file_name = match next_available_image_name(&opt) {
+    let file_name = match next_available_image_name(&image_format) {
         Ok(name) => name,
         Err(error) => {
             println!("{}", error);
@@ -152,56 +182,67 @@ fn main() {
     let output_file_path = Path::new(&file_name);
 
     // Process the files and generate output
-    match ImageSet::process_files(&output_file_path, opt.jpeg, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
+    match ImageSet::process_files(&output_file_path, image_format, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
         Ok(()) => println!("Created file: {}", file_name),
         Err(error) => println!("{}", error)
     }
 }
 
-fn next_available_image_name(options: &Opt) -> Result<String, String> {
+fn common_format_in(image_files: &Vec<FileData>) -> ImageFormat {
+    if image_files.is_empty() {
+        return ImageFormat::Unspecified;
+    }
+    let mut all_formats = image_files.iter().map(|file_data| {
+        ImageFormat::infer_format(&file_data.full_path)
+    });
+    let first_format = all_formats.next().unwrap();
+    match all_formats.all(|fmt| fmt == first_format) {
+        true => first_format,
+        false => ImageFormat::Unspecified
+    }
+}
 
-    let extension = match options.jpeg {
-        true => String::from(".jpg"),
-        false => String::from(".png")
-    };
+fn next_available_image_name(image_format: &ImageFormat) -> Result<String, String> {
+
+    let target_extension = image_format.get_main_extension();
 
     // Get current path, check if the default file name exists, if not return it
     let mut current_path: PathBuf = match std::env::current_dir() {
         Ok(dir) => dir,
         Err(_) => return Err(String::from("Could not access current directory"))
     };
-    current_path.push("stitch.jpg");
-    if !current_path.is_file() {
-        current_path.pop();
-        current_path.push("stitch.png");
-        if !current_path.is_file() {
-            return Ok(format!("stitch{}", extension));
+    let mut un_numbered_file_exists = false;
+    for &extension in ImageFormat::allowed_extensions().iter() {
+        current_path.push(format!("stitch.{}", extension));
+        if current_path.is_file() {
+            un_numbered_file_exists = true;
+            break;
         }
+        current_path.pop();
     }
-    current_path.pop();
+    if !un_numbered_file_exists {
+        return Ok(format!("stitch{}", target_extension));
+    }
 
     // Check file names until a usable one is found
     let mut i = 1usize;
     while i < 1000 {
-
-        // Check for JPG
-        let jpg_file_name: String = format!("stitch_{}.jpg", i);
-        current_path.push(&jpg_file_name);
-        if current_path.is_file() {
+        let mut numbered_file_exists = false;
+        for &extension in ImageFormat::allowed_extensions().iter() {
+            let file_name: String = format!("stitch_{}.{}", i, extension);
+            current_path.push(file_name);
+            if current_path.is_file() {
+                numbered_file_exists = true;
+            }
             current_path.pop();
-            i += 1;
-            continue;
+            if numbered_file_exists {
+                break;
+            }
         }
-
-        // Check for PNG
-        let png_file_name: String = format!("stitch_{}.png", i);
-        current_path.push(&png_file_name);
-        if current_path.is_file() {
-            current_path.pop();
-            i += 1;
-            continue;
+        if !numbered_file_exists {
+            return Ok(format!("stitch_{}{}", i, target_extension));
         }
-        return Ok(format!("stitch_{}{}", i, extension));
+        i += 1;
     };
     Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."))
 }

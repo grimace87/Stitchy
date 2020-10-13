@@ -6,7 +6,7 @@ use self::image::{GenericImage, ImageOutputFormat};
 use std::cmp::min;
 use std::path::Path;
 use std::time::SystemTime;
-use crate::enums::{AlignmentMode, AspectType, Axis};
+use crate::enums::{AlignmentMode, AspectType, Axis, ImageFormat};
 use std::fs::File;
 
 pub struct FileData {
@@ -23,7 +23,7 @@ struct ImageRect {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::enums::AlignmentMode;
+    use crate::enums::{AlignmentMode, ImageFormat};
     use crate::image_set::ImageSet;
 
     fn clear_output() -> Result<(), String> {
@@ -57,7 +57,7 @@ pub mod tests {
         let output_path = Path::new("./test.jpg");
         let image_files = retrieve_files_result.unwrap();
         let process_result: Result<(), String> =
-            ImageSet::process_files(&output_path, true, 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            ImageSet::process_files(&output_path, ImageFormat::Jpeg, 90usize, image_files, AlignmentMode::Grid, 0, 0);
         assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
     }
 
@@ -84,7 +84,31 @@ pub mod tests {
 
             // Process files, generate output
             let output_path = Path::new("./test.jpg");
-            let process_result: Result<(), String> = ImageSet::process_files(&output_path, true, 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            let process_result: Result<(), String> = ImageSet::process_files(&output_path, ImageFormat::Jpeg, 90usize, image_files, AlignmentMode::Grid, 0, 0);
+            assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+        }
+    }
+
+    #[test]
+    pub fn test_output_formats() {
+        use std::path::Path;
+
+        // Per allowed extension, infer the type enum and generate an output
+        for &format in ImageFormat::allowed_extensions().iter() {
+
+            // Clear existing file
+            let clear_result = clear_output();
+            assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
+
+            // Get files from test directory
+            let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_output_formats"));
+            assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
+
+            // Process files, generate output in the target format
+            let image_files = retrieve_files_result.unwrap();
+            let output_file_name = format!("./test.{}", format);
+            let output_path = Path::new(&output_file_name);
+            let process_result: Result<(), String> = ImageSet::process_files(&output_path, ImageFormat::infer_format(&format!(".{}", format)), 90usize, image_files, AlignmentMode::Grid, 0, 0);
             assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
         }
     }
@@ -111,7 +135,7 @@ impl ImageSet {
     pub fn image_files_in_directory(path_components: Vec<&str>) -> Result<Vec<FileData>, String> {
 
         // Get and verify current location
-        let accepted_extensions: [&str; 5] = ["png", "jpg", "jpeg", "bmp", "gif"];
+        let accepted_extensions = ImageFormat::allowed_extensions();
         let current_path = match std::env::current_dir() {
             Ok(dir) => dir,
             Err(_) => return Err(String::from("Could not access current directory"))
@@ -202,7 +226,7 @@ impl ImageSet {
 
     /// Function accepting input images, processing them and creating the output.
     /// Designed to be unit-testable
-    pub fn process_files(output_file_path: &Path, as_jpeg: bool, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
+    pub fn process_files(output_file_path: &Path, format: ImageFormat, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
 
         // Decode all images and keep in memory for now
         let mut image_set = ImageSet::empty_set(alignment, width_limit, height_limit);
@@ -214,7 +238,7 @@ impl ImageSet {
         }
 
         // Prepare data set before generating output
-        image_set.generate_output_file(output_file_path, as_jpeg, quality)
+        image_set.generate_output_file(output_file_path, format, quality)
     }
 
     fn empty_set(alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> ImageSet {
@@ -248,14 +272,14 @@ impl ImageSet {
         Ok(())
     }
 
-    fn generate_output_file(&mut self, file_path: &Path, as_jpeg: bool, quality: usize) -> Result<(), String> {
+    fn generate_output_file(&mut self, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
 
         // Prepare if not already done
         if !self.is_prepared {
             self.prepare();
         }
 
-        self.make_file(file_path, as_jpeg, quality)
+        self.make_file(file_path, format, quality)
     }
 
     fn prepare(&mut self) {
@@ -504,7 +528,7 @@ impl ImageSet {
         self.largest_main_line_pixels = (self.largest_main_line_pixels as f64 * using_scale) as u32;
     }
 
-    fn make_file(&self, file_path: &Path, as_jpeg: bool, quality: usize) -> Result<(), String> {
+    fn make_file(&self, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
         if !self.is_prepared {
             panic!("Did not prepare image before attempting to save");
         }
@@ -532,9 +556,12 @@ impl ImageSet {
 
         // Save the file
         let mut file_writer = File::create(file_path).unwrap();
-        let format = match as_jpeg {
-            true => ImageOutputFormat::Jpeg(quality as u8),
-            false => ImageOutputFormat::Png
+        let format = match format {
+            ImageFormat::Jpeg => ImageOutputFormat::Jpeg(quality as u8),
+            ImageFormat::Png => ImageOutputFormat::Png,
+            ImageFormat::Gif => ImageOutputFormat::Gif,
+            ImageFormat::Bmp => ImageOutputFormat::Bmp,
+            ImageFormat::Unspecified => ImageOutputFormat::Jpeg(100u8) // Should not reach this point
         };
         match output_image.write_to(&mut file_writer, format) {
             Ok(()) => Ok(()),

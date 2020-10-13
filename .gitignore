@@ -4,5 +4,6 @@
 **/*.rs.bk
 /*.png
 /*.jpg
+/*.jpeg
 /*.gif
 /*.bmp
