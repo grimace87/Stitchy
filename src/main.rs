@@ -267,6 +267,11 @@ fn print_help() {
     println!("  --maxd=n          Limit output width and height to n pixels at most");
     println!("  --reverse, -r     Stitch file in reverse chronological order");
     println!("  --quality=n       Set the output quality from 1 to 100, defaults to 100");
+    println!("  --jpeg            Output as JPEG");
+    println!("  --png             Output as PNG");
+    println!("  --gif             Output as GIF");
+    println!("  --bmp             Output as BMP");
+    println!("                    Note: default format matches sources, or JPEG where source formats vary")
 }
 
 fn print_version() {
