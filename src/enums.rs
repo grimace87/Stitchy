@@ -45,7 +45,7 @@ impl ImageFormat {
         ["jpg", "jpeg", "png", "gif", "bmp"]
     }
 
-    pub fn infer_format(file_name: &String) -> ImageFormat {
+    pub fn infer_format(file_name: &str) -> ImageFormat {
         match file_name.rfind('.') {
             Some(pos) => {
                 let extension = &file_name[pos..file_name.len()];

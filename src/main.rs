@@ -211,7 +211,7 @@ fn main() {
     }
 }
 
-fn common_format_in(image_files: &Vec<FileData>) -> ImageFormat {
+fn common_format_in(image_files: &[FileData]) -> ImageFormat {
     if image_files.is_empty() {
         return ImageFormat::Unspecified;
     }

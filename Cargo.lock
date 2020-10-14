@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "stitchy"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",

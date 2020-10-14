@@ -27,8 +27,8 @@ where `n` is the number of images you would like to stitch together into one. Th
 will take the `n` most recent files and arrange them in a grid, resizing where needed,
 and outputting a file "stitch.jpg".
 
-Various flags exist to adjust how the output is created. Run `stitchy --help` to see a list
-of these flags.
+Various flags exist to adjust how source images are selected and how the output is generated.
+Run `stitchy --help` to see a list of these flags.
 
 ### Installing
 
@@ -45,8 +45,7 @@ Note that this crate will only compile with Rust version 1.34 and up, due to a d
 
 ### Details
 
-- Input files may be in JPEG, PNG, GIF or BMP format, while the output will always be a JPEG
-  file named "stitchy.jpg". Operates entirely within the current directory.
-- This project has currently only been tested (minimally) on 64-bit Windows using nightly Rust
-  and the GNU toolchain, i.e. `nightly-x86_64-pc-windows-gnu`. Testing the MSVC toolchain, as
-  well as the GNU toolchain on Linux, is likely to come soon.
+- Input files may be in JPEG, PNG, GIF or BMP format, and are taken from the current directory.
+  The output format will match the source images if they are all the same, or default to JPEG
+  otherwise. Flags can be used to require a particular output format.
+- Compatible with Windows (MSVC toolchain), macOS and Linux.
