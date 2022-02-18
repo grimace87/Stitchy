@@ -1,6 +1,5 @@
 extern crate image;
 
-use image::GenericImageView;
 use image::DynamicImage;
 use self::image::{GenericImage, ImageOutputFormat};
 use std::cmp::min;

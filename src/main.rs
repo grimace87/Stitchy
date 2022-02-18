@@ -205,7 +205,7 @@ fn main() {
     let output_file_path = Path::new(&file_name);
 
     // Process the files and generate output
-    match ImageSet::process_files(&output_file_path, image_format, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
+    match ImageSet::process_files(output_file_path, image_format, opt.quality, image_files, alignment, opt.maxw, opt.maxh) {
         Ok(()) => println!("Created file: {}", file_name),
         Err(error) => println!("{}", error)
     }
