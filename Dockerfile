@@ -1,8 +1,6 @@
 
-FROM rust:1.31
+FROM rust:latest
 
 COPY ./ ./
 
-RUN rustup self update
-RUN rustup default stable
 RUN cargo test
