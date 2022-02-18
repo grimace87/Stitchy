@@ -46,19 +46,19 @@ pub mod tests {
 
         // Clear existing file
         let clear_result = clear_output();
-        assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
+        assert!(clear_result.is_ok(), "{}", clear_result.err().unwrap_or(String::new()));
 
         // Get files from test directory
         let retrieve_files_result =
             ImageSet::image_files_in_directory(vec!("images", "testing", "test_types"));
-        assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
+        assert!(retrieve_files_result.is_ok(), "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
         // Process files, generate output
         let output_path = Path::new("./test.jpg");
         let image_files = retrieve_files_result.unwrap();
         let process_result: Result<(), String> =
             ImageSet::process_files(&output_path, ImageFormat::Jpeg, 90usize, image_files, AlignmentMode::Grid, 0, 0);
-        assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+        assert!(process_result.is_ok(), "{}", process_result.err().unwrap_or(String::new()));
     }
 
     #[test]
@@ -70,11 +70,11 @@ pub mod tests {
 
             // Clear existing file
             let clear_result = clear_output();
-            assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
+            assert!(clear_result.is_ok(), "{}", clear_result.err().unwrap_or(String::new()));
 
             // Get files from test directory
             let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_sizes"));
-            assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
+            assert!(retrieve_files_result.is_ok(), "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
             // Use a subset of the images, as per the loop index
             let mut image_files = retrieve_files_result.unwrap();
@@ -85,7 +85,7 @@ pub mod tests {
             // Process files, generate output
             let output_path = Path::new("./test.jpg");
             let process_result: Result<(), String> = ImageSet::process_files(&output_path, ImageFormat::Jpeg, 90usize, image_files, AlignmentMode::Grid, 0, 0);
-            assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+            assert!(process_result.is_ok(), "{}", process_result.err().unwrap_or(String::new()));
         }
     }
 
@@ -98,18 +98,18 @@ pub mod tests {
 
             // Clear existing file
             let clear_result = clear_output();
-            assert!(clear_result.is_ok(), clear_result.err().unwrap_or(String::new()));
+            assert!(clear_result.is_ok(), "{}", clear_result.err().unwrap_or(String::new()));
 
             // Get files from test directory
             let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_output_formats"));
-            assert!(retrieve_files_result.is_ok(), retrieve_files_result.err().unwrap_or(String::new()));
+            assert!(retrieve_files_result.is_ok(), "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
             // Process files, generate output in the target format
             let image_files = retrieve_files_result.unwrap();
             let output_file_name = format!("./test.{}", format);
             let output_path = Path::new(&output_file_name);
             let process_result: Result<(), String> = ImageSet::process_files(&output_path, ImageFormat::infer_format(&format!(".{}", format)), 90usize, image_files, AlignmentMode::Grid, 0, 0);
-            assert!(process_result.is_ok(), process_result.err().unwrap_or(String::new()));
+            assert!(process_result.is_ok(), "{}", process_result.err().unwrap_or(String::new()));
         }
     }
 }
