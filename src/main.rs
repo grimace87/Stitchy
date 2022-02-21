@@ -1,10 +1,12 @@
 pub mod enums;
+pub mod files;
 pub mod image_set;
 pub mod options;
 pub mod print;
 
 use enums::{AlignmentMode, ImageFormat};
-use image_set::{FileData, ImageSet};
+use files::FileData;
+use image_set::ImageSet;
 use std::path::{PathBuf, Path};
 use structopt::StructOpt;
 
@@ -33,7 +35,7 @@ fn main() {
     let number_of_files = opt.number_of_files.unwrap();
 
     // Get all accepted image files in the current directory
-    let mut image_files: Vec<FileData> = match ImageSet::image_files_in_directory(vec!()) {
+    let mut image_files: Vec<FileData> = match FileData::image_files_in_directory(vec!()) {
         Ok(files) => files,
         Err(msg) => {
             println!("{}", msg);
