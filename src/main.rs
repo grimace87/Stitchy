@@ -1,5 +1,6 @@
 pub mod image_set;
 pub mod enums;
+pub mod print;
 
 use enums::{AlignmentMode, ImageFormat};
 use image_set::{FileData, ImageSet};
@@ -64,11 +65,11 @@ fn main() {
     // Get command line args, check for flags that merely print to the console
     let mut opt: Opt = Opt::from_args();
     if opt.help {
-        print_help();
+        print::help();
         return;
     }
     if opt.version {
-        print_version();
+        print::version();
         return;
     }
 
@@ -269,37 +270,4 @@ fn next_available_image_name(image_format: &ImageFormat) -> Result<String, Strin
         i += 1;
     };
     Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."))
-}
-
-fn print_help() {
-    println!("Stitchy v{} by {}", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"));
-    println!("Collects a number of image files in the current directory and stitches them into");
-    println!("a single file.");
-    println!();
-    println!("Basic usage:");
-    println!("  stitchy n");
-    println!("  where n is the number of images to use. There must be at least that many in the");
-    println!("  current directory. By default, The most recent images available will be used.");
-    println!();
-    println!("Supported flags:");
-    println!("  --help            Print this help");
-    println!("  --version         Print the installed version number");
-    println!("  --ascalpha        Select first files based on ascending alphabetical order");
-    println!("  --descalpha       Select first files based on descending alphabetical order");
-    println!("  --horizontal, -h  Force stitching across a single row only");
-    println!("  --vertical, -v    Force stitching down a single column only");
-    println!("  --maxw=n          Limit output width to n pixels at most");
-    println!("  --maxh=n          Limit output height to n pixels at most");
-    println!("  --maxd=n          Limit output width and height to n pixels at most");
-    println!("  --reverse, -r     Stitch file in reverse chronological order");
-    println!("  --quality=n       Set the output quality from 1 to 100, defaults to 100");
-    println!("  --jpeg            Output as JPEG");
-    println!("  --png             Output as PNG");
-    println!("  --gif             Output as GIF");
-    println!("  --bmp             Output as BMP");
-    println!("                    Note: default format matches sources, or JPEG where source formats vary")
-}
-
-fn print_version() {
-    println!("Stitchy version {}", env!("CARGO_PKG_VERSION"));
 }
