@@ -1,69 +1,17 @@
-pub mod image_set;
 pub mod enums;
+pub mod image_set;
 pub mod print;
+pub mod options;
 
 use enums::{AlignmentMode, ImageFormat};
 use image_set::{FileData, ImageSet};
 use std::path::{PathBuf, Path};
 use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "")]
-struct Opt {
-
-    #[structopt(long)]
-    help: bool,
-
-    #[structopt(long)]
-    version: bool,
-
-    #[structopt(short, long)]
-    horizontal: bool,
-
-    #[structopt(short, long)]
-    vertical: bool,
-
-    #[structopt(long, default_value="0")]
-    maxd: usize,
-
-    #[structopt(long, default_value="0")]
-    maxw: usize,
-
-    #[structopt(long, default_value="0")]
-    maxh: usize,
-
-    #[structopt(short, long)]
-    reverse: bool,
-
-    #[structopt(long)]
-    jpeg: bool,
-
-    #[structopt(long)]
-    png: bool,
-
-    #[structopt(long)]
-    gif: bool,
-
-    #[structopt(long)]
-    bmp: bool,
-
-    #[structopt(long, default_value="100")]
-    quality: usize,
-
-    #[structopt(long)]
-    ascalpha: bool,
-
-    #[structopt(long)]
-    descalpha: bool,
-
-    #[structopt(required_unless_one = &["help", "version"])]
-    number_of_files: Option<usize>
-}
-
 fn main() {
 
     // Get command line args, check for flags that merely print to the console
-    let mut opt: Opt = Opt::from_args();
+    let mut opt = options::Opt::from_args();
     if opt.help {
         print::help();
         return;
@@ -73,73 +21,16 @@ fn main() {
         return;
     }
 
-    // Verify not requesting both ascending and descending alphabetical order
-    if opt.ascalpha && opt.descalpha {
-        println!("If selecting files based on alphabetical order, choose ascending or descending, not both.");
+    // Perform simple validation
+    if let Some(error) = opt.check_for_basic_errors() {
+        println!("{}", error);
         return;
     }
 
-    // Verify not requesting both horizontal and vertical
-    if opt.horizontal && opt.vertical {
-        println!("Choose either horizontal or vertical (or neither), not both.");
-        return;
-    }
-
-    // Verify not requesting overlapping constraints
-    if opt.maxd > 0 && opt.maxw > 0 {
-        println!("If using maxd, do not specify maxw as well.");
-        return;
-    }
-    if opt.maxd > 0 && opt.maxh > 0 {
-        println!("If using maxd, do not specify maxh as well.");
-        return;
-    }
-    if opt.maxd > 0 {
-        opt.maxw = opt.maxd;
-        opt.maxh = opt.maxd;
-    }
-
-    // Choose one format only, or none at all
-    let flag_set: [bool; 4] = [opt.jpeg, opt.png, opt.gif, opt.bmp];
-    let format_flag_count: i32 = flag_set.iter().map(|&f| { if f { 1 } else { 0 } }).sum();
-    if format_flag_count > 1 {
-        println!("You cannot specify more than one of image types JPEG, PNG, GIF and BMP.");
-        return;
-    }
-    let mut image_format: ImageFormat = if opt.jpeg {
-        ImageFormat::Jpeg
-    } else if opt.png {
-        ImageFormat::Png
-    } else if opt.gif {
-        ImageFormat::Gif
-    } else if opt.bmp {
-        ImageFormat::Bmp
-    } else {
-        ImageFormat::Unspecified
-    };
-
-    // Verify quality setting is within the appropriate range, and is only used for JPEG
-    if opt.quality == 0 || opt.quality > 100 {
-        println!("The quality setting must be in the range of 1 to 100 inclusive.");
-        return;
-    }
-    if opt.quality != 100 && image_format != ImageFormat::Jpeg && image_format != ImageFormat::Unspecified {
-        println!("The quality setting can only be used for JPEG output.");
-        return;
-    }
-
-    // Verify a sensible number was given
-    let number_of_files = match opt.number_of_files {
-        Some(num) => num,
-        _ => {
-            println!("You did not provide number_of_files and StructOpt did not catch this error");
-            return;
-        }
-    };
-    if number_of_files == 0 {
-        println!("The number of images to stitch must be at least 1.");
-        return;
-    }
+    // Pre-use preparations
+    opt.prepare_for_use();
+    let mut image_format: ImageFormat = opt.get_requested_image_format();
+    let number_of_files = opt.number_of_files.unwrap();
 
     // Get all accepted image files in the current directory
     let mut image_files: Vec<FileData> = match ImageSet::image_files_in_directory(vec!()) {
