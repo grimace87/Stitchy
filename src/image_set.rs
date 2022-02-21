@@ -45,19 +45,31 @@ pub mod tests {
 
         // Clear existing file
         let clear_result = clear_output();
-        assert!(clear_result.is_ok(), "{}", clear_result.err().unwrap_or(String::new()));
+        assert!(
+            clear_result.is_ok(),
+            "{}", clear_result.err().unwrap_or(String::new()));
 
         // Get files from test directory
         let retrieve_files_result =
             ImageSet::image_files_in_directory(vec!("images", "testing", "test_types"));
-        assert!(retrieve_files_result.is_ok(), "{}", retrieve_files_result.err().unwrap_or(String::new()));
+        assert!(
+            retrieve_files_result.is_ok(),
+            "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
         // Process files, generate output
         let output_path = Path::new("./test.jpg");
         let image_files = retrieve_files_result.unwrap();
-        let process_result: Result<(), String> =
-            ImageSet::process_files(&output_path, ImageFormat::Jpeg, 90usize, image_files, AlignmentMode::Grid, 0, 0);
-        assert!(process_result.is_ok(), "{}", process_result.err().unwrap_or(String::new()));
+        let process_result: Result<(), String> = ImageSet::process_files(
+            &output_path,
+            ImageFormat::Jpeg,
+            90usize,
+            image_files,
+            AlignmentMode::Grid,
+            0,
+            0);
+        assert!(
+            process_result.is_ok(),
+            "{}", process_result.err().unwrap_or(String::new()));
     }
 
     #[test]
@@ -69,11 +81,16 @@ pub mod tests {
 
             // Clear existing file
             let clear_result = clear_output();
-            assert!(clear_result.is_ok(), "{}", clear_result.err().unwrap_or(String::new()));
+            assert!(
+                clear_result.is_ok(),
+                "{}", clear_result.err().unwrap_or(String::new()));
 
             // Get files from test directory
-            let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_sizes"));
-            assert!(retrieve_files_result.is_ok(), "{}", retrieve_files_result.err().unwrap_or(String::new()));
+            let retrieve_files_result = ImageSet::image_files_in_directory(
+                vec!("images", "testing", "test_sizes"));
+            assert!(
+                retrieve_files_result.is_ok(),
+                "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
             // Use a subset of the images, as per the loop index
             let mut image_files = retrieve_files_result.unwrap();
@@ -83,8 +100,16 @@ pub mod tests {
 
             // Process files, generate output
             let output_path = Path::new("./test.jpg");
-            let process_result: Result<(), String> = ImageSet::process_files(&output_path, ImageFormat::Jpeg, 90usize, image_files, AlignmentMode::Grid, 0, 0);
-            assert!(process_result.is_ok(), "{}", process_result.err().unwrap_or(String::new()));
+            let process_result: Result<(), String> = ImageSet::process_files(
+                &output_path,
+                ImageFormat::Jpeg,
+                90usize, image_files,
+                AlignmentMode::Grid,
+                0,
+                0);
+            assert!(
+                process_result.is_ok(),
+                "{}", process_result.err().unwrap_or(String::new()));
         }
     }
 
@@ -97,18 +122,31 @@ pub mod tests {
 
             // Clear existing file
             let clear_result = clear_output();
-            assert!(clear_result.is_ok(), "{}", clear_result.err().unwrap_or(String::new()));
+            assert!(
+                clear_result.is_ok(),
+                "{}", clear_result.err().unwrap_or(String::new()));
 
             // Get files from test directory
-            let retrieve_files_result = ImageSet::image_files_in_directory(vec!("images", "testing", "test_output_formats"));
-            assert!(retrieve_files_result.is_ok(), "{}", retrieve_files_result.err().unwrap_or(String::new()));
+            let retrieve_files_result = ImageSet::image_files_in_directory(
+                vec!("images", "testing", "test_output_formats"));
+            assert!(
+                retrieve_files_result.is_ok(),
+                "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
             // Process files, generate output in the target format
             let image_files = retrieve_files_result.unwrap();
             let output_file_name = format!("./test.{}", format);
             let output_path = Path::new(&output_file_name);
-            let process_result: Result<(), String> = ImageSet::process_files(&output_path, ImageFormat::infer_format(&format!(".{}", format)), 90usize, image_files, AlignmentMode::Grid, 0, 0);
-            assert!(process_result.is_ok(), "{}", process_result.err().unwrap_or(String::new()));
+            let process_result: Result<(), String> = ImageSet::process_files(
+                &output_path,
+                ImageFormat::infer_format(&format!(".{}", format)),
+                90usize, image_files,
+                AlignmentMode::Grid,
+                0,
+                0);
+            assert!(
+                process_result.is_ok(),
+                "{}", process_result.err().unwrap_or(String::new()));
         }
     }
 }
@@ -225,7 +263,15 @@ impl ImageSet {
 
     /// Function accepting input images, processing them and creating the output.
     /// Designed to be unit-testable
-    pub fn process_files(output_file_path: &Path, format: ImageFormat, quality: usize, image_files: Vec<FileData>, alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> Result<(), String> {
+    pub fn process_files(
+        output_file_path: &Path,
+        format: ImageFormat,
+        quality: usize,
+        image_files: Vec<FileData>,
+        alignment: AlignmentMode,
+        width_limit: usize,
+        height_limit: usize
+    ) -> Result<(), String> {
 
         // Decode all images and keep in memory for now
         let mut image_set = ImageSet::empty_set(alignment, width_limit, height_limit);
@@ -271,7 +317,12 @@ impl ImageSet {
         Ok(())
     }
 
-    fn generate_output_file(&mut self, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
+    fn generate_output_file(
+        &mut self,
+        file_path: &Path,
+        format: ImageFormat,
+        quality: usize
+    ) -> Result<(), String> {
 
         // Prepare if not already done
         if !self.is_prepared {
@@ -307,7 +358,9 @@ impl ImageSet {
         let mut portrait_count = 0;
         let mut squarish_count = 0;
         for img in &self.images {
-            let aspect_type = AspectType::get_aspect_from_dims(img.width(), img.height());
+            let aspect_type = AspectType::get_aspect_from_dims(
+                img.width(),
+                img.height());
             match aspect_type {
                 AspectType::Wide => wide_count += 1,
                 AspectType::Portrait => portrait_count += 1,
@@ -397,7 +450,8 @@ impl ImageSet {
         for image in &self.images {
 
             // Get sizing for this image
-            let scaling_factor = (self.cross_axis_pixel_size_per_image as f64) / (image.height() as f64);
+            let scaling_factor =
+                (self.cross_axis_pixel_size_per_image as f64) / (image.height() as f64);
             let scaled_width = ((image.width() as f64) * scaling_factor) as u32;
             self.image_rects.push(ImageRect {
                 x: pen_x,
@@ -431,7 +485,8 @@ impl ImageSet {
         for image in &self.images {
 
             // Get sizing for this image
-            let scaling_factor = (self.cross_axis_pixel_size_per_image as f64) / (image.width() as f64);
+            let scaling_factor =
+                (self.cross_axis_pixel_size_per_image as f64) / (image.width() as f64);
             let scaled_height = ((image.height() as f64) * scaling_factor) as u32;
             self.image_rects.push(ImageRect {
                 x: pen_x,
@@ -523,7 +578,8 @@ impl ImageSet {
         }
 
         // Update output image pixel sizes
-        self.cross_axis_pixel_size_per_image = (self.cross_axis_pixel_size_per_image as f64 * using_scale) as u32;
+        self.cross_axis_pixel_size_per_image =
+            (self.cross_axis_pixel_size_per_image as f64 * using_scale) as u32;
         self.largest_main_line_pixels = (self.largest_main_line_pixels as f64 * using_scale) as u32;
     }
 
@@ -547,7 +603,8 @@ impl ImageSet {
         for i in 0..self.images.len() {
             let img = &self.images[i];
             let rect = &self.image_rects[i];
-            let scaled_image = img.resize_exact(rect.w, rect.h, image::imageops::Lanczos3);
+            let scaled_image =
+                img.resize_exact(rect.w, rect.h, image::imageops::Lanczos3);
             if let Err(err) = output_image.copy_from(&scaled_image, rect.x, rect.y) {
                 return Err(format!("{} error while copying file #{}", err, i));
             }

@@ -1,7 +1,7 @@
 pub mod enums;
 pub mod image_set;
-pub mod print;
 pub mod options;
+pub mod print;
 
 use enums::{AlignmentMode, ImageFormat};
 use image_set::{FileData, ImageSet};
