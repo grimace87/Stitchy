@@ -41,11 +41,22 @@ That's it! The binary will be built from source and placed in the `.cargo/bin` d
 inside your home folder. This should be available on your PATH if Cargo is installed
 correctly.
 
-Note that this crate will only compile with Rust version 1.34 and up, due to a dependency.
+Note that this crate will only compile with Rust version 1.56 and up.
+
+#### NetBSD
+
+If you are using NetBSD, `stitchy` is available from the official repositories.
+Simply run,
+
+```sh
+pkgin install stitchy
+```
+
+to install the binary package
 
 ### Details
 
 - Input files may be in JPEG, PNG, GIF or BMP format, and are taken from the current directory.
   The output format will match the source images if they are all the same, or default to JPEG
   otherwise. Flags can be used to require a particular output format.
-- Compatible with Windows (MSVC toolchain), macOS and Linux.
+- Compatible with Windows (MSVC toolchain), macOS, Linux and NetBSD.
