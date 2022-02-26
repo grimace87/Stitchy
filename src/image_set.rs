@@ -1,12 +1,10 @@
 extern crate image;
 
-use crate::enums::{AlignmentMode, AspectType, Axis, ImageFormat};
-use crate::files::FileData;
+use crate::enums::{AlignmentMode, AspectType, Axis};
+use crate::options::Opt;
 use image::DynamicImage;
-use self::image::{GenericImage, ImageOutputFormat};
+use self::image::GenericImage;
 use std::cmp::min;
-use std::path::Path;
-use std::fs::File;
 
 struct ImageRect {
     x: u32,
@@ -17,9 +15,10 @@ struct ImageRect {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::enums::{AlignmentMode, ImageFormat};
-    use crate::files::FileData;
+    use crate::enums::ImageFormat;
+    use crate::files::ImageFiles;
     use crate::image_set::ImageSet;
+    use crate::options::Opt;
 
     fn clear_output() -> Result<(), String> {
         let current_path = std::env::current_dir().unwrap();
@@ -37,7 +36,6 @@ pub mod tests {
 
     #[test]
     pub fn test_types() {
-        use std::path::Path;
 
         // Clear existing file
         let clear_result = clear_output();
@@ -47,22 +45,17 @@ pub mod tests {
 
         // Get files from test directory
         let retrieve_files_result =
-            FileData::image_files_in_directory(vec!("images", "testing", "test_types"));
+            ImageFiles::from_directory(vec!("images", "testing", "test_types"));
         assert!(
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
         // Process files, generate output
-        let output_path = Path::new("./test.jpg");
-        let image_files = retrieve_files_result.unwrap();
-        let process_result: Result<(), String> = ImageSet::process_files(
-            &output_path,
-            ImageFormat::Jpeg,
-            90usize,
-            image_files,
-            AlignmentMode::Grid,
-            0,
-            0);
+        let image_files = retrieve_files_result.unwrap()
+            .into_image_contents().unwrap();
+        let options = Opt { number_of_files: Some(image_files.len()), jpeg: true, ..Opt::default() };
+        let process_result = ImageSet::new(image_files, &options)
+            .stitch();
         assert!(
             process_result.is_ok(),
             "{}", process_result.err().unwrap_or(String::new()));
@@ -70,7 +63,6 @@ pub mod tests {
 
     #[test]
     pub fn test_sizes() {
-        use std::path::Path;
 
         // Attempt increasing number of files, from 2 to 10
         for i in 2..11 {
@@ -82,27 +74,18 @@ pub mod tests {
                 "{}", clear_result.err().unwrap_or(String::new()));
 
             // Get files from test directory
-            let retrieve_files_result = FileData::image_files_in_directory(
+            let retrieve_files_result = ImageFiles::from_directory(
                 vec!("images", "testing", "test_sizes"));
             assert!(
                 retrieve_files_result.is_ok(),
                 "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
-            // Use a subset of the images, as per the loop index
-            let mut image_files = retrieve_files_result.unwrap();
-            image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
-            image_files.truncate(i);
-            image_files.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time));
-
             // Process files, generate output
-            let output_path = Path::new("./test.jpg");
-            let process_result: Result<(), String> = ImageSet::process_files(
-                &output_path,
-                ImageFormat::Jpeg,
-                90usize, image_files,
-                AlignmentMode::Grid,
-                0,
-                0);
+            let image_files = retrieve_files_result.unwrap()
+                .into_image_contents().unwrap();
+            let options = Opt { number_of_files: Some(i), jpeg: true, ..Opt::default() };
+            let process_result = ImageSet::new(image_files, &options)
+                .stitch();
             assert!(
                 process_result.is_ok(),
                 "{}", process_result.err().unwrap_or(String::new()));
@@ -111,10 +94,9 @@ pub mod tests {
 
     #[test]
     pub fn test_output_formats() {
-        use std::path::Path;
 
         // Per allowed extension, infer the type enum and generate an output
-        for &format in ImageFormat::allowed_extensions().iter() {
+        for &extension in ImageFormat::allowed_extensions().iter() {
 
             // Clear existing file
             let clear_result = clear_output();
@@ -123,23 +105,39 @@ pub mod tests {
                 "{}", clear_result.err().unwrap_or(String::new()));
 
             // Get files from test directory
-            let retrieve_files_result = FileData::image_files_in_directory(
+            let retrieve_files_result = ImageFiles::from_directory(
                 vec!("images", "testing", "test_output_formats"));
             assert!(
                 retrieve_files_result.is_ok(),
                 "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
-            // Process files, generate output in the target format
-            let image_files = retrieve_files_result.unwrap();
-            let output_file_name = format!("./test.{}", format);
-            let output_path = Path::new(&output_file_name);
-            let process_result: Result<(), String> = ImageSet::process_files(
-                &output_path,
-                ImageFormat::infer_format(&format!(".{}", format)),
-                90usize, image_files,
-                AlignmentMode::Grid,
-                0,
-                0);
+            // Process input files
+            let image_files = retrieve_files_result.unwrap()
+                .into_image_contents().unwrap();
+
+            // Build options set matching the image format under test
+            let format = ImageFormat::infer_format(extension);
+            let options = match format {
+                ImageFormat::Jpeg => Opt {
+                    number_of_files: Some(image_files.len()), jpeg: true, ..Opt::default()
+                },
+                ImageFormat::Png => Opt {
+                    number_of_files: Some(image_files.len()), png: true, ..Opt::default()
+                },
+                ImageFormat::Bmp => Opt {
+                    number_of_files: Some(image_files.len()), bmp: true, ..Opt::default()
+                },
+                ImageFormat::Gif => Opt {
+                    number_of_files: Some(image_files.len()), gif: true, ..Opt::default()
+                },
+                ImageFormat::Unspecified => Opt {
+                    number_of_files: Some(image_files.len()), ..Opt::default()
+                }
+            };
+
+            // Perform stitch on inputs
+            let process_result = ImageSet::new(image_files, &options)
+                .stitch();
             assert!(
                 process_result.is_ok(),
                 "{}", process_result.err().unwrap_or(String::new()));
@@ -152,7 +150,6 @@ pub struct ImageSet {
     alignment: AlignmentMode,
     width_limit: u32,
     height_limit: u32,
-    is_prepared: bool,
     main_axis: Axis,
     grid_size_main_axis: u32,
     grid_size_cross_axis: u32,
@@ -164,38 +161,13 @@ pub struct ImageSet {
 
 impl ImageSet {
 
-    /// Function accepting input images, processing them and creating the output.
-    /// Designed to be unit-testable
-    pub fn process_files(
-        output_file_path: &Path,
-        format: ImageFormat,
-        quality: usize,
-        image_files: Vec<FileData>,
-        alignment: AlignmentMode,
-        width_limit: usize,
-        height_limit: usize
-    ) -> Result<(), String> {
+    pub fn new(images: Vec<DynamicImage>, options: &Opt) -> ImageSet {
 
-        // Decode all images and keep in memory for now
-        let mut image_set = ImageSet::empty_set(alignment, width_limit, height_limit);
-        for file in image_files {
-            let path = Path::new(&file.full_path);
-            if let Err(error) = image_set.add_from_file_path(path) {
-                return Err(error);
-            };
-        }
-
-        // Prepare data set before generating output
-        image_set.generate_output_file(output_file_path, format, quality)
-    }
-
-    fn empty_set(alignment: AlignmentMode, width_limit: usize, height_limit: usize) -> ImageSet {
-        ImageSet {
-            images: Vec::new(),
-            alignment,
-            width_limit: width_limit as u32,
-            height_limit: height_limit as u32,
-            is_prepared: false,
+        let mut set = ImageSet {
+            images,
+            alignment: options.get_alignment(),
+            width_limit: options.maxw as u32,
+            height_limit: options.maxh as u32,
             main_axis: Axis::Horizontal,
             grid_size_main_axis: 1,
             grid_size_cross_axis: 1,
@@ -203,45 +175,15 @@ impl ImageSet {
             cross_axis_pixel_size_per_image: 1,
             image_rects: Vec::new(),
             largest_main_line_pixels: 1
-        }
-    }
-
-    fn add_from_file_path(&mut self, path: &std::path::Path) -> Result<(), String> {
-        let img: DynamicImage = match image::open(&path).ok() {
-            Some(image) => image,
-            None => return Err(format!("Failed to open: {:?}", path))
         };
-        let w = img.width();
-        let h = img.height();
-        self.images.push(img);
-        if let Some(file_name) = path.file_name() {
-            println!("Path: {}, w: {}, h: {}", file_name.to_str().unwrap(), w, h);
-        }
-        Ok(())
-    }
 
-    fn generate_output_file(
-        &mut self,
-        file_path: &Path,
-        format: ImageFormat,
-        quality: usize
-    ) -> Result<(), String> {
+        set.update_main_axis();
+        set.update_grid_size();
+        set.update_cross_axis_pixel_size();
+        set.generate_sizing_metadata();
+        set.check_size_limits();
 
-        // Prepare if not already done
-        if !self.is_prepared {
-            self.prepare();
-        }
-
-        self.make_file(file_path, format, quality)
-    }
-
-    fn prepare(&mut self) {
-        self.update_main_axis();
-        self.update_grid_size();
-        self.update_cross_axis_pixel_size();
-        self.generate_sizing_metadata();
-        self.check_size_limits();
-        self.is_prepared = true;
+        set
     }
 
     /// Sets main_axis
@@ -486,10 +428,7 @@ impl ImageSet {
         self.largest_main_line_pixels = (self.largest_main_line_pixels as f64 * using_scale) as u32;
     }
 
-    fn make_file(&self, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
-        if !self.is_prepared {
-            panic!("Did not prepare image before attempting to save");
-        }
+    pub fn stitch(self) -> Result<DynamicImage, String> {
 
         // Determine output file dimensions
         let out_w = match self.main_axis {
@@ -513,18 +452,6 @@ impl ImageSet {
             }
         }
 
-        // Save the file
-        let mut file_writer = File::create(file_path).unwrap();
-        let format = match format {
-            ImageFormat::Jpeg => ImageOutputFormat::Jpeg(quality as u8),
-            ImageFormat::Png => ImageOutputFormat::Png,
-            ImageFormat::Gif => ImageOutputFormat::Gif,
-            ImageFormat::Bmp => ImageOutputFormat::Bmp,
-            ImageFormat::Unspecified => ImageOutputFormat::Jpeg(100u8) // Should not reach this point
-        };
-        match output_image.write_to(&mut file_writer, format) {
-            Ok(()) => Ok(()),
-            Err(error) => Err(format!("Failed to generate output file - {}", error))
-        }
+        Ok(output_image)
     }
 }

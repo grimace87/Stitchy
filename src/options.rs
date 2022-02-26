@@ -1,8 +1,8 @@
 
 use structopt::StructOpt;
-use crate::ImageFormat;
+use crate::{ImageFormat, AlignmentMode};
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Default, StructOpt)]
 #[structopt(name = "")]
 pub struct Opt {
 
@@ -121,6 +121,14 @@ impl Opt {
             ImageFormat::Bmp
         } else {
             ImageFormat::Unspecified
+        }
+    }
+
+    pub fn get_alignment(&self) -> AlignmentMode {
+        match (self.horizontal, self.vertical) {
+            (true, false) => AlignmentMode::Horizontal,
+            (false, true) => AlignmentMode::Vertical,
+            _ => AlignmentMode::Grid
         }
     }
 }
