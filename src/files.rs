@@ -6,6 +6,9 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use image::{DynamicImage, ImageOutputFormat};
 
+const BYTES_KIB: u64 = 1024;
+const BYTES_MIB: u64 = 1024 * 1024;
+
 pub struct ImageFiles {
     file_list: Vec<FileProperties>
 }
@@ -270,5 +273,51 @@ pub fn write_image_to_file(image: DynamicImage, file_path: &Path, format: ImageF
     match image.write_to(&mut file_writer, format) {
         Ok(()) => Ok(()),
         Err(error) => Err(format!("Failed to generate output file - {}", error))
+    }
+}
+
+pub fn size_of_file(file_path: &Path) -> Result<String, ()> {
+    let length_bytes = file_path.metadata()
+        .map_err(|_| ())?
+        .len();
+    let length_string = make_size_string(length_bytes);
+    Ok(length_string)
+}
+
+fn make_size_string(length_bytes: u64) -> String {
+    match length_bytes {
+        l if l < BYTES_KIB => format!(
+            "{} bytes", l
+        ),
+        l if l < 10 * BYTES_KIB => format!(
+            "{}.{} KiB", l / BYTES_KIB, (10 * (l % BYTES_KIB)) / BYTES_KIB
+        ),
+        l if l < BYTES_MIB => format!(
+            "{} KiB", l / BYTES_KIB
+        ),
+        l if l < 10 * BYTES_MIB => format!(
+            "{}.{} MiB", l / BYTES_MIB, (10 * (l % BYTES_MIB)) / BYTES_MIB
+        ),
+        l => format!("{} MiB", l / BYTES_MIB)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::make_size_string;
+    #[test]
+    fn check_files_length_strings() {
+        let sizes: [(u64, &'static str); 6] = [
+            (137, "137 bytes"),
+            (1370, "1.3 KiB"),
+            (13700, "13 KiB"),
+            (137000, "133 KiB"),
+            (1370000, "1.3 MiB"),
+            (13700000, "13 MiB")
+        ];
+        for (size_bytes, expected_string) in sizes.into_iter() {
+            let got_string = make_size_string(size_bytes);
+            assert_eq!(expected_string, got_string.as_str())
+        }
     }
 }

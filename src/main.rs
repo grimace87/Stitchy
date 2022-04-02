@@ -53,7 +53,15 @@ fn run_with_options(opt: options::Opt) -> Result<String, String> {
     let output = ImageSet::new(images, &opt)
         .stitch()?;
 
-    // Write the output file, returning a message even if successful
-    files::write_image_to_file(output, &output_file_path, output_format, opt.quality)
-        .map(|_| format!("Created file: {:?}", output_file_path.file_name().unwrap()))
+    // Write the output file, returning a success message or an error message
+    files::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
+    let output_string = match files::size_of_file(&output_file_path) {
+        Ok(size_string) => format!(
+            "Created file: {:?}, {}", output_file_path.file_name().unwrap(), size_string
+        ),
+        Err(_) => format!(
+            "Created file: {:?}", output_file_path.file_name().unwrap()
+        )
+    };
+    Ok(output_string)
 }
