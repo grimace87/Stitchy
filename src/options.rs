@@ -1,15 +1,18 @@
 
+use serde::{Serialize, Deserialize};
 use structopt::StructOpt;
 use crate::{ImageFormat, AlignmentMode};
 
-#[derive(Debug, Default, StructOpt)]
+#[derive(Debug, Clone, StructOpt, Serialize, Deserialize)]
 #[structopt(name = "")]
 pub struct Opt {
 
     #[structopt(long)]
+    #[serde(skip_serializing, default)]
     pub help: bool,
 
     #[structopt(long)]
+    #[serde(skip_serializing, default)]
     pub version: bool,
 
     #[structopt(short, long)]
@@ -53,6 +56,29 @@ pub struct Opt {
 
     #[structopt(required_unless_one = &["help", "version"])]
     pub number_of_files: Option<usize>
+}
+
+impl Default for Opt {
+    fn default() -> Self {
+        Opt {
+            help: false,
+            version: false,
+            horizontal: false,
+            vertical: false,
+            maxd: 0,
+            maxw: 0,
+            maxh: 0,
+            reverse: false,
+            jpeg: false,
+            png: false,
+            gif: false,
+            bmp: false,
+            quality: 100,
+            ascalpha: false,
+            descalpha: false,
+            number_of_files: None
+        }
+    }
 }
 
 impl Opt {
@@ -130,5 +156,40 @@ impl Opt {
             (false, true) => AlignmentMode::Vertical,
             _ => AlignmentMode::Grid
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Opt;
+
+    #[test]
+    fn serializes_okay() {
+        let expected = Opt {
+            horizontal: true,
+            maxw: 120,
+            png: true,
+            number_of_files: None,
+            ..Opt::default()
+        };
+        let from_json = "{ \
+         \"help\": false, \
+         \"version\": false, \
+         \"horizontal\": true, \
+         \"vertical\": false, \
+         \"maxd\": 0, \
+         \"maxw\": 120, \
+         \"maxh\": 0, \
+         \"reverse\": false, \
+         \"jpeg\": false, \
+         \"png\": true, \
+         \"gif\": false, \
+         \"bmp\": false, \
+         \"quality\": 100, \
+         \"ascalpha\": false, \
+         \"descalpha\": false \
+         }";
+        let result: Opt = serde_json::from_str(from_json).unwrap();
+        assert_eq!(format!("{:?}", expected), format!("{:?}", result));
     }
 }
