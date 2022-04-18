@@ -201,33 +201,36 @@ impl Opt {
             (Some(i), Some(_)) => Some(i),
             _ => None
         };
+        let base_has_axis = self.horizontal || self.vertical;
+        let base_has_format = self.jpeg || self.png || self.gif || self.bmp;
+        let base_constrains_dimensions = self.maxd != 0 || self.maxw != 0 || self.maxh != 0;
+        let base_sorts_alpha = self.ascalpha || self.descalpha;
         Opt {
             help: self.help,
             version: self.version,
-            horizontal: self.horizontal || other.horizontal,
-            vertical: self.vertical || other.vertical,
-            maxd: Self::merge_integers(self.maxd, other.maxd, 0),
-            maxw: Self::merge_integers(self.maxw, other.maxw, 0),
-            maxh: Self::merge_integers(self.maxh, other.maxh, 0),
+            horizontal: self.horizontal || (other.horizontal && !base_has_axis),
+            vertical: self.vertical || (other.vertical && !base_has_axis),
+            maxd: Self::if_else_int(base_constrains_dimensions, self.maxd, other.maxd),
+            maxw: Self::if_else_int(base_constrains_dimensions, self.maxw, other.maxw),
+            maxh: Self::if_else_int(base_constrains_dimensions, self.maxh, other.maxh),
             reverse: self.reverse || other.reverse,
-            jpeg: self.jpeg || other.jpeg,
-            png: self.png || other.png,
-            gif: self.gif || other.gif,
-            bmp: self.bmp || other.bmp,
-            quality: Self::merge_integers(self.quality, other.quality, DEFAULT_QUALITY),
-            ascalpha: self.ascalpha || other.ascalpha,
-            descalpha: self.descalpha || other.descalpha,
+            jpeg: self.jpeg || (other.jpeg && !base_has_format),
+            png: self.png || (other.png && !base_has_format),
+            gif: self.gif || (other.gif && !base_has_format),
+            bmp: self.bmp || (other.bmp && !base_has_format),
+            quality: Self::if_else_int(self.quality != DEFAULT_QUALITY, self.quality, other.quality),
+            ascalpha: self.ascalpha || (other.ascalpha && !base_sorts_alpha),
+            descalpha: self.descalpha || (other.descalpha && !base_sorts_alpha),
             number_of_files,
             setdefaults: self.setdefaults,
             cleardefaults: self.cleardefaults
         }
     }
 
-    fn merge_integers(base: usize, mixer: usize, default: usize) -> usize {
-        if base == default {
-            mixer
-        } else {
-            base
+    fn if_else_int(condition: bool, if_true: usize, if_false: usize) -> usize {
+        match condition {
+            true => if_true,
+            false => if_false
         }
     }
 }
@@ -413,6 +416,37 @@ mod test {
         assert_eq!(opt.descalpha, false);
         let error = opt.check_for_basic_errors();
         assert!(error.is_none());
+    }
+
+    #[test]
+    fn base_options_favoured_in_classes() {
+        // Classes such as dimension constraints, image format, alphabetic sorting, etc.
+        let base = Opt {
+            horizontal: true,
+            maxw: 540,
+            png: true,
+            ascalpha: true,
+            ..Opt::default()
+        };
+        let mixer = Opt {
+            vertical: true,
+            maxd: 540,
+            gif: true,
+            descalpha: true,
+            ..Opt::default()
+        };
+        let merged = base.mix_in(mixer);
+        assert_eq!(merged.horizontal, true);
+        assert_eq!(merged.vertical, false);
+        assert_eq!(merged.maxd, 0);
+        assert_eq!(merged.maxw, 540);
+        assert_eq!(merged.maxh, 0);
+        assert_eq!(merged.jpeg, false);
+        assert_eq!(merged.png, true);
+        assert_eq!(merged.gif, false);
+        assert_eq!(merged.bmp, false);
+        assert_eq!(merged.ascalpha, true);
+        assert_eq!(merged.descalpha, false);
     }
 
     #[test]

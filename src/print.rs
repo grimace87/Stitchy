@@ -33,6 +33,7 @@ pub fn help() {
     println!("  Default options can be set for the current user by using the --setdefaults flag.");
     println!("  These are stored in .stitchyrc in the home directory. The next time you use Stitchy,");
     println!("  defaults will be automatically applied, though can be overridden with the same flag.");
+    println!("  or another flag which would perform a similar action (such as a different output format.");
     println!("  When setting defaults again, the existing ones are effectively cleared beforehand.");
     println!("  Pass the --cleardefaults flag to delete user defaults.");
 }
