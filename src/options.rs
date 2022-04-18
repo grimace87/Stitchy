@@ -3,6 +3,8 @@ use serde::{Serialize, Deserialize};
 use structopt::StructOpt;
 use crate::{ImageFormat, AlignmentMode};
 
+const DEFAULT_QUALITY: usize = 100;
+
 #[derive(Debug, Clone, StructOpt, Serialize, Deserialize)]
 #[structopt(name = "")]
 pub struct Opt {
@@ -73,7 +75,7 @@ impl Default for Opt {
             png: false,
             gif: false,
             bmp: false,
-            quality: 100,
+            quality: DEFAULT_QUALITY,
             ascalpha: false,
             descalpha: false,
             number_of_files: None
@@ -82,6 +84,18 @@ impl Default for Opt {
 }
 
 impl Opt {
+
+    pub fn deserialise(json: &str) -> Option<Opt> {
+        let result = serde_json::from_str(json);
+        match result {
+            Ok(o) => o,
+            Err(e) => {
+                println!("Error deserialising settings: {:?}", e);
+                None
+            }
+        }
+    }
+
     pub fn check_for_basic_errors(&self) -> Option<&'static str> {
 
         // Verify not requesting both ascending and descending alphabetical order
@@ -157,39 +171,75 @@ impl Opt {
             _ => AlignmentMode::Grid
         }
     }
+
+    pub fn serialise(&self) -> Option<String> {
+        let result = serde_json::to_string(self);
+        match result {
+            Ok(s) => Some(s),
+            Err(e) => {
+                println!("Error serialising settings: {:?}", e);
+                None
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::Opt;
 
-    #[test]
-    fn serializes_okay() {
-        let expected = Opt {
-            horizontal: true,
-            maxw: 120,
-            png: true,
-            number_of_files: None,
-            ..Opt::default()
-        };
-        let from_json = "{ \
-         \"help\": false, \
-         \"version\": false, \
+    const TEST_JSON: &str = "{ \
          \"horizontal\": true, \
          \"vertical\": false, \
          \"maxd\": 0, \
          \"maxw\": 120, \
          \"maxh\": 0, \
          \"reverse\": false, \
-         \"jpeg\": false, \
-         \"png\": true, \
+         \"jpeg\": true, \
+         \"png\": false, \
          \"gif\": false, \
          \"bmp\": false, \
-         \"quality\": 100, \
+         \"quality\": 80, \
          \"ascalpha\": false, \
-         \"descalpha\": false \
+         \"descalpha\": false, \
+         \"number_of_files\": null \
          }";
-        let result: Opt = serde_json::from_str(from_json).unwrap();
-        assert_eq!(format!("{:?}", expected), format!("{:?}", result));
+
+    fn trim_all(s: &str) -> String {
+        s.split_whitespace().collect()
+    }
+
+    #[test]
+    fn deserializes_okay() {
+        let expected = Opt {
+            horizontal: true,
+            maxw: 120,
+            jpeg: true,
+            quality: 80,
+            number_of_files: None,
+            ..Opt::default()
+        };
+        let result = Opt::deserialise(TEST_JSON);
+        assert!(result.is_some());
+        let opt = result.unwrap();
+        assert_eq!(format!("{:?}", expected), format!("{:?}", opt));
+    }
+
+    #[test]
+    fn serializes_okay() {
+        let from_opt = Opt {
+            horizontal: true,
+            maxw: 120,
+            jpeg: true,
+            quality: 80,
+            number_of_files: None,
+            ..Opt::default()
+        };
+        let result = from_opt.serialise();
+        assert!(result.is_some());
+        let json = result.unwrap();
+        let trimmed_json = trim_all(json.as_str());
+        let expected = trim_all(TEST_JSON);
+        assert_eq!(expected, trimmed_json);
     }
 }
