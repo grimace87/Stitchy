@@ -209,6 +209,13 @@ mod test {
         s.split_whitespace().collect()
     }
 
+    fn make_test_default() -> Opt {
+        Opt {
+            number_of_files: Some(1),
+            ..Opt::default()
+        }
+    }
+
     #[test]
     fn deserializes_okay() {
         let expected = Opt {
@@ -241,5 +248,122 @@ mod test {
         let trimmed_json = trim_all(json.as_str());
         let expected = trim_all(TEST_JSON);
         assert_eq!(expected, trimmed_json);
+    }
+
+    #[test]
+    fn test_default_is_valid() {
+        let error = make_test_default().check_for_basic_errors();
+        assert!(error.is_none());
+    }
+
+    #[test]
+    fn default_quailty_is_100() {
+        let opt = make_test_default();
+        assert_eq!(opt.quality, super::DEFAULT_QUALITY);
+    }
+
+    #[test]
+    fn choosing_both_directions_gives_error() {
+        let error = Opt { horizontal: true, vertical: true, ..make_test_default() }
+            .check_for_basic_errors();
+        assert!(error.is_some());
+    }
+
+    #[test]
+    fn choosing_neither_direction_gives_no_error() {
+        let opt = make_test_default();
+        assert_eq!(opt.horizontal, false);
+        assert_eq!(opt.vertical, false);
+        let error = opt.check_for_basic_errors();
+        assert!(error.is_none());
+    }
+
+    #[test]
+    fn setting_general_and_specific_dimension_constraints_gives_error() {
+        let error_1 = Opt { maxd: 100, maxw: 100, ..make_test_default() }.check_for_basic_errors();
+        let error_2 = Opt { maxd: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors();
+        let error_3 = Opt { maxd: 100, maxw: 100, maxh: 100, ..make_test_default() }
+            .check_for_basic_errors();
+        assert!(error_1.is_some());
+        assert!(error_2.is_some());
+        assert!(error_3.is_some());
+    }
+
+    #[test]
+    fn setting_both_specific_dimension_constraints_gives_no_error() {
+        let error = Opt { maxw: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors();
+        assert!(error.is_none());
+    }
+
+    #[test]
+    fn setting_zero_dimension_constraints_gives_no_error() {
+        let error = Opt { maxd: 0, maxw: 0, maxh: 0, ..make_test_default() }
+            .check_for_basic_errors();
+        assert!(error.is_none());
+    }
+
+    #[test]
+    fn choosing_multiple_formats_gives_error() {
+        let error_1 = Opt { jpeg: true, png: true, ..make_test_default() }.check_for_basic_errors();
+        let error_2 = Opt { png: true, gif: true, ..make_test_default() }.check_for_basic_errors();
+        let error_3 = Opt { gif: true, bmp: true, ..make_test_default() }.check_for_basic_errors();
+        let error_4 = Opt { jpeg: true, png: true, gif: true, bmp: true, ..make_test_default() }
+            .check_for_basic_errors();
+        assert!(error_1.is_some());
+        assert!(error_2.is_some());
+        assert!(error_3.is_some());
+        assert!(error_4.is_some());
+    }
+
+    #[test]
+    fn choosing_no_format_gives_no_error() {
+        let opt = Opt { ..make_test_default() };
+        assert_eq!(opt.jpeg, false);
+        assert_eq!(opt.png, false);
+        assert_eq!(opt.gif, false);
+        assert_eq!(opt.bmp, false);
+        let error = opt.check_for_basic_errors();
+        assert!(error.is_none());
+    }
+
+    #[test]
+    fn choosing_quality_for_non_jpeg_gives_error() {
+        let error_1 = Opt { png: true, quality: 50, ..make_test_default() }
+            .check_for_basic_errors();
+        let error_2 = Opt { gif: true, quality: 50, ..make_test_default() }
+            .check_for_basic_errors();
+        let error_3 = Opt { bmp: true, quality: 50, ..make_test_default() }
+            .check_for_basic_errors();
+        assert!(error_1.is_some());
+        assert!(error_2.is_some());
+        assert!(error_3.is_some());
+    }
+
+    #[test]
+    fn choosing_quality_for_jpeg_gives_no_error() {
+        let error = Opt { jpeg: true, quality: 50, ..make_test_default() }.check_for_basic_errors();
+        assert!(error.is_none());
+    }
+
+    #[test]
+    fn choosing_silly_quality_gives_error() {
+        let error = Opt { jpeg: true, quality: 250, ..make_test_default() }.check_for_basic_errors();
+        assert!(error.is_some());
+    }
+
+    #[test]
+    fn choosing_ascending_and_descending_gives_error() {
+        let error = Opt { ascalpha: true, descalpha: true, ..make_test_default() }
+            .check_for_basic_errors();
+        assert!(error.is_some());
+    }
+
+    #[test]
+    fn choosing_neither_ascending_nor_descending_gives_no_error() {
+        let opt = make_test_default();
+        assert_eq!(opt.ascalpha, false);
+        assert_eq!(opt.descalpha, false);
+        let error = opt.check_for_basic_errors();
+        assert!(error.is_none());
     }
 }
