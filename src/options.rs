@@ -182,6 +182,42 @@ impl Opt {
             }
         }
     }
+
+    /// Sets the options included in the other instance
+    pub fn mix_in(self, other: Opt) -> Opt {
+        let number_of_files = match (self.number_of_files, other.number_of_files) {
+            (Some(i), None) => Some(i),
+            (None, Some(i)) => Some(i),
+            (Some(i), Some(_)) => Some(i),
+            _ => None
+        };
+        Opt {
+            help: self.help,
+            version: self.version,
+            horizontal: self.horizontal || other.horizontal,
+            vertical: self.vertical || other.vertical,
+            maxd: Self::merge_integers(self.maxd, other.maxd, 0),
+            maxw: Self::merge_integers(self.maxw, other.maxw, 0),
+            maxh: Self::merge_integers(self.maxh, other.maxh, 0),
+            reverse: self.reverse || other.reverse,
+            jpeg: self.jpeg || other.jpeg,
+            png: self.png || other.png,
+            gif: self.gif || other.gif,
+            bmp: self.bmp || other.bmp,
+            quality: Self::merge_integers(self.quality, other.quality, DEFAULT_QUALITY),
+            ascalpha: self.ascalpha || other.ascalpha,
+            descalpha: self.descalpha || other.descalpha,
+            number_of_files
+        }
+    }
+
+    fn merge_integers(base: usize, mixer: usize, default: usize) -> usize {
+        if base == default {
+            mixer
+        } else {
+            base
+        }
+    }
 }
 
 #[cfg(test)]
@@ -365,5 +401,150 @@ mod test {
         assert_eq!(opt.descalpha, false);
         let error = opt.check_for_basic_errors();
         assert!(error.is_none());
+    }
+
+    #[test]
+    fn mixin_preserves_mixer_booleans() {
+        let mixer = Opt {
+            horizontal: true,
+            vertical: true,
+            reverse: true,
+            jpeg: true,
+            png: true,
+            gif: true,
+            bmp: true,
+            ascalpha: true,
+            descalpha: true,
+            ..Opt::default()
+        };
+        let merged = Opt::default().mix_in(mixer);
+        assert!(merged.horizontal);
+        assert!(merged.vertical);
+        assert!(merged.reverse);
+        assert!(merged.jpeg);
+        assert!(merged.png);
+        assert!(merged.gif);
+        assert!(merged.bmp);
+        assert!(merged.ascalpha);
+        assert!(merged.descalpha);
+    }
+
+    #[test]
+    fn mixin_preserves_original_booleans() {
+        let base = Opt {
+            horizontal: true,
+            vertical: true,
+            reverse: true,
+            jpeg: true,
+            png: true,
+            gif: true,
+            bmp: true,
+            ascalpha: true,
+            descalpha: true,
+            ..Opt::default()
+        };
+        let merged = base.mix_in(Opt::default());
+        assert!(merged.horizontal);
+        assert!(merged.vertical);
+        assert!(merged.reverse);
+        assert!(merged.jpeg);
+        assert!(merged.png);
+        assert!(merged.gif);
+        assert!(merged.bmp);
+        assert!(merged.ascalpha);
+        assert!(merged.descalpha);
+    }
+
+    #[test]
+    fn mixin_preserves_mixer_integers() {
+        let mixer = Opt {
+            maxd: 100,
+            maxw: 200,
+            maxh: 50,
+            quality: 80,
+            ..Opt::default()
+        };
+        let merged = Opt::default().mix_in(mixer);
+        assert_eq!(merged.maxd, 100);
+        assert_eq!(merged.maxw, 200);
+        assert_eq!(merged.maxh, 50);
+        assert_eq!(merged.quality, 80);
+    }
+
+    #[test]
+    fn mixin_preserves_original_integers() {
+        let base = Opt {
+            maxd: 100,
+            maxw: 200,
+            maxh: 50,
+            quality: 80,
+            ..Opt::default()
+        };
+        let merged = base.mix_in(Opt::default());
+        assert_eq!(merged.maxd, 100);
+        assert_eq!(merged.maxw, 200);
+        assert_eq!(merged.maxh, 50);
+        assert_eq!(merged.quality, 80);
+    }
+
+    #[test]
+    fn mixin_favours_original_integers() {
+        let base = Opt {
+            maxd: 100,
+            maxw: 200,
+            maxh: 50,
+            quality: 80,
+            ..Opt::default()
+        };
+        let mixer = Opt {
+            maxd: 50,
+            maxw: 100,
+            maxh: 25,
+            quality: 40,
+            ..Opt::default()
+        };
+        let merged = base.mix_in(mixer);
+        assert_eq!(merged.maxd, 100);
+        assert_eq!(merged.maxw, 200);
+        assert_eq!(merged.maxh, 50);
+        assert_eq!(merged.quality, 80);
+    }
+
+    #[test]
+    fn mixin_preserves_non_default_quality() {
+        let base = Opt {
+            quality: super::DEFAULT_QUALITY,
+            ..Opt::default()
+        };
+        let mixer = Opt {
+            quality: 40,
+            ..Opt::default()
+        };
+        let merged = base.mix_in(mixer);
+        assert_eq!(merged.quality, 40);
+    }
+
+    #[test]
+    fn mixin_preserves_some_number_of_files() {
+        let base = Opt { number_of_files: Some(5), ..Opt::default() };
+        let mixer = Opt { number_of_files: None, ..Opt::default() };
+        let merged_1 = base.mix_in(mixer);
+        let base = Opt { number_of_files: None, ..Opt::default() };
+        let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
+        let merged_2 = base.mix_in(mixer);
+        let base = Opt { number_of_files: None, ..Opt::default() };
+        let mixer = Opt { number_of_files: None, ..Opt::default() };
+        let merged_3 = base.mix_in(mixer);
+        assert!(merged_1.number_of_files.is_some());
+        assert!(merged_2.number_of_files.is_some());
+        assert!(merged_3.number_of_files.is_none());
+    }
+
+    #[test]
+    fn mixin_favours_original_number_of_files() {
+        let base = Opt { number_of_files: Some(5), ..Opt::default() };
+        let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
+        let merged_number = base.mix_in(mixer).number_of_files.unwrap();
+        assert_eq!(merged_number, 5);
     }
 }
