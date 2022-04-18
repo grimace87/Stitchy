@@ -3,6 +3,7 @@ pub mod files;
 pub mod image_set;
 pub mod options;
 pub mod print;
+pub mod profiles;
 
 use enums::{AlignmentMode, ImageFormat};
 use files::ImageFiles;

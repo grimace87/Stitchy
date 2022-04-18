@@ -276,9 +276,9 @@ pub fn write_image_to_file(image: DynamicImage, file_path: &Path, format: ImageF
     }
 }
 
-pub fn size_of_file(file_path: &Path) -> Result<String, ()> {
+pub fn size_of_file(file_path: &Path) -> Result<String, String> {
     let length_bytes = file_path.metadata()
-        .map_err(|_| ())?
+        .map_err(|_| "File metadata could not be read.".to_owned())?
         .len();
     let length_string = make_size_string(length_bytes);
     Ok(length_string)
