@@ -12,6 +12,8 @@ pub fn help() {
     println!("Supported flags:");
     println!("  --help            Print this help");
     println!("  --version         Print the installed version number");
+    println!("  --setdefaults     Store the given options as defaults for the current user");
+    println!("  --cleardefaults   Delete the default options for the current user");
     println!("  --ascalpha        Select first files based on ascending alphabetical order");
     println!("  --descalpha       Select first files based on descending alphabetical order");
     println!("  --horizontal, -h  Force stitching across a single row only");
@@ -25,7 +27,14 @@ pub fn help() {
     println!("  --png             Output as PNG");
     println!("  --gif             Output as GIF");
     println!("  --bmp             Output as BMP");
-    println!("                    Note: default format matches sources, or JPEG where source formats vary")
+    println!("                    Note: default format matches sources, or JPEG if source formats vary");
+    println!();
+    println!("User defaults:");
+    println!("  Default options can be set for the current user by using the --setdefaults flag.");
+    println!("  These are stored in .stitchyrc in the home directory. The next time you use Stitchy,");
+    println!("  defaults will be automatically applied, though can be overridden with the same flag.");
+    println!("  When setting defaults again, the existing ones are effectively cleared beforehand.");
+    println!("  Pass the --cleardefaults flag to delete user defaults.");
 }
 
 pub fn version() {

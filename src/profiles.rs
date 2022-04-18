@@ -1,7 +1,7 @@
 
 const PROFILE_FILE_NAME: &str = ".stitchyrc";
 
-struct Profile {
+pub struct Profile {
     path: Option<std::path::PathBuf>
 }
 
@@ -30,12 +30,19 @@ impl Profile {
         match self.path {
             Some(path) => {
                 if let Err(e) = std::fs::write(path, contents) {
-                    println!("Error writing profile file: {:?}", e);
+                    println!("Error writing user defaults: {:?}", e);
                 }
             },
             None => {
-                println!("The profile file could not be determined.");
-                return;
+                println!("The user defaults could not be determined.");
+            }
+        }
+    }
+
+    pub fn delete(self) {
+        if let Some(path) = self.path {
+            if std::fs::remove_file(path).is_err() {
+                println!("User defaults were not deleted.");
             }
         }
     }

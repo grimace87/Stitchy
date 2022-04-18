@@ -56,8 +56,16 @@ pub struct Opt {
     #[structopt(long)]
     pub descalpha: bool,
 
-    #[structopt(required_unless_one = &["help", "version"])]
-    pub number_of_files: Option<usize>
+    #[structopt(required_unless_one = &["help", "version", "setdefaults"])]
+    pub number_of_files: Option<usize>,
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub setdefaults: bool,
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub cleardefaults: bool
 }
 
 impl Default for Opt {
@@ -78,7 +86,9 @@ impl Default for Opt {
             quality: DEFAULT_QUALITY,
             ascalpha: false,
             descalpha: false,
-            number_of_files: None
+            number_of_files: None,
+            setdefaults: false,
+            cleardefaults: false
         }
     }
 }
@@ -207,7 +217,9 @@ impl Opt {
             quality: Self::merge_integers(self.quality, other.quality, DEFAULT_QUALITY),
             ascalpha: self.ascalpha || other.ascalpha,
             descalpha: self.descalpha || other.descalpha,
-            number_of_files
+            number_of_files,
+            setdefaults: self.setdefaults,
+            cleardefaults: self.cleardefaults
         }
     }
 

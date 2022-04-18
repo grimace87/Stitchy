@@ -12,7 +12,7 @@ use structopt::StructOpt;
 
 fn main() {
 
-    // Get command line args, check for flags that merely print to the console
+    // Get command line args, check for flags that merely print to the console and exit
     let mut opt = options::Opt::from_args();
     if opt.help {
         print::help();
@@ -21,6 +21,19 @@ fn main() {
     if opt.version {
         print::version();
         return;
+    }
+
+    // Save options if requested, or try to load stored options otherwise
+    if opt.setdefaults {
+        if let Some(json) = opt.serialise() {
+            profiles::Profile::main().write_string(json);
+        }
+    } else if opt.cleardefaults {
+        profiles::Profile::main().delete();
+    } else if let Some(json) = profiles::Profile::main().to_string() {
+        if let Some(profile_opt) = options::Opt::deserialise(&json) {
+            opt = opt.mix_in(profile_opt);
+        }
     }
 
     // Perform simple validation
