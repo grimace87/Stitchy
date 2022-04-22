@@ -29,6 +29,10 @@ fn main() {
 
     // Save options if requested, or try to load stored options otherwise
     if opt.setdefaults {
+        if let Some(error) = opt.check_for_basic_errors() {
+            println!("Cannot save settings. {}", error);
+            return;
+        }
         if let Some(json) = opt.serialise() {
             profiles::Profile::main().write_string(json);
         }
@@ -48,6 +52,12 @@ fn main() {
 
     // Perform simple validation
     if let Some(error) = opt.check_for_basic_errors() {
+        println!("{}", error);
+        return;
+    }
+
+    // Ensure some number of files was provided
+    if let Some(error) = opt.check_number_of_files_provided() {
         println!("{}", error);
         return;
     }

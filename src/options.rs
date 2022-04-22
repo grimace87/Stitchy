@@ -147,6 +147,11 @@ impl Opt {
             return Some("The quality setting can only be used for JPEG output.");
         }
 
+        None
+    }
+
+    pub fn check_number_of_files_provided(&self) -> Option<&'static str> {
+
         // Verify a sensible number was given
         let number_of_files = match self.number_of_files {
             Some(num) => num,
