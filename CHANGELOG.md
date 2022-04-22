@@ -1,12 +1,12 @@
 
-### Unreleased
+### 0.1.4 (April 22, 2022)
 
 - Updated to Rust 2021
 - Updated dependencies (structopt to 0.3.26, image to 0.24.0)
 - Print output file size in terminal output
 - Added ability to save defaults that will apply automatically were not overridden
 
-### 0.1.3
+### 0.1.3 (October 14, 2020)
 
 - More output options - PNG, GIF and BMP, with automatic matching source format if they're identical
 - Can now operate on a single image, allowing downsizing and re-encoding into another format
