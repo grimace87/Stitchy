@@ -14,6 +14,7 @@ pub fn help() {
     println!("  --version         Print the installed version number");
     println!("  --setdefaults     Store the given options as defaults for the current user");
     println!("  --cleardefaults   Delete the default options for the current user");
+    println!("  --printdefaults   Print the default options for the current user");
     println!("  --ascalpha        Select first files based on ascending alphabetical order");
     println!("  --descalpha       Select first files based on descending alphabetical order");
     println!("  --horizontal, -h  Force stitching across a single row only");
@@ -30,16 +31,37 @@ pub fn help() {
     println!("                    Note: default format matches sources, or JPEG if source formats vary");
     println!();
     println!("User defaults:");
-    println!("  Default options can be set for the current user by using the --setdefaults flag.");
-    println!("  These are stored in .stitchyrc in the home directory. The next time you use Stitchy,");
+    println!("  Default options can be set for the current user by using the --setdefaults flag,");
+    println!("  queried using the --printdefaults flag, and deleted with --cleardefaults.");
+    println!(
+        "  These are stored in {} in the home directory. The next time you use Stitchy,",
+        crate::profiles::PROFILE_FILE_NAME);
     println!("  defaults will be automatically applied, though can be overridden with the same flag.");
     println!("  or another flag which would perform a similar action (such as a different output format.");
     println!("  When setting defaults again, the existing ones are effectively cleared beforehand.");
-    println!("  Pass the --cleardefaults flag to delete user defaults.");
 }
 
 pub fn version() {
     println!("Stitchy version {}", env!("CARGO_PKG_VERSION"));
     println!("Authored by {}", env!("CARGO_PKG_AUTHORS"));
     println!("Repository: {}", env!("CARGO_PKG_REPOSITORY"));
+}
+
+pub fn defaults() {
+    let load_attempt = crate::profiles::Profile::main().to_string();
+    if load_attempt.is_none() {
+        println!("Did not find a {} for the current user.", crate::profiles::PROFILE_FILE_NAME);
+        return;
+    }
+
+    let json = load_attempt.unwrap();
+    let serialise_result = crate::options::Opt::deserialise(&json);
+    if serialise_result.is_none() {
+        println!("Failed to parse {} for the current user.", crate::profiles::PROFILE_FILE_NAME);
+        return;
+    }
+
+    // Print JSON stored in the file
+    // Deserialisation was validated above since running Stitchy will do this also
+    println!("{}", json);
 }

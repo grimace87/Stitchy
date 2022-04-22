@@ -22,6 +22,10 @@ fn main() {
         print::version();
         return;
     }
+    if opt.printdefaults {
+        print::defaults();
+        return;
+    }
 
     // Save options if requested, or try to load stored options otherwise
     if opt.setdefaults {
@@ -34,6 +38,12 @@ fn main() {
         if let Some(profile_opt) = options::Opt::deserialise(&json) {
             opt = opt.mix_in(profile_opt);
         }
+    }
+
+    // Check conditions where the user did not request a number of files, but this is allowed
+    // because some operations on the defaults file does not require that files are processed now
+    if opt.number_of_files.is_none() && (opt.setdefaults || opt.cleardefaults) {
+        return;
     }
 
     // Perform simple validation

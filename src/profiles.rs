@@ -1,5 +1,5 @@
 
-const PROFILE_FILE_NAME: &str = ".stitchyrc";
+pub const PROFILE_FILE_NAME: &str = ".stitchyrc";
 
 pub struct Profile {
     path: Option<std::path::PathBuf>

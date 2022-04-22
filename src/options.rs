@@ -17,6 +17,10 @@ pub struct Opt {
     #[serde(skip_serializing, default)]
     pub version: bool,
 
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub printdefaults: bool,
+
     #[structopt(short, long)]
     pub horizontal: bool,
 
@@ -56,7 +60,8 @@ pub struct Opt {
     #[structopt(long)]
     pub descalpha: bool,
 
-    #[structopt(required_unless_one = &["help", "version", "setdefaults"])]
+    #[structopt(required_unless_one =
+        &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
     pub number_of_files: Option<usize>,
 
     #[structopt(long)]
@@ -73,6 +78,7 @@ impl Default for Opt {
         Opt {
             help: false,
             version: false,
+            printdefaults: false,
             horizontal: false,
             vertical: false,
             maxd: 0,
@@ -208,6 +214,7 @@ impl Opt {
         Opt {
             help: self.help,
             version: self.version,
+            printdefaults: self.printdefaults,
             horizontal: self.horizontal || (other.horizontal && !base_has_axis),
             vertical: self.vertical || (other.vertical && !base_has_axis),
             maxd: Self::if_else_int(base_constrains_dimensions, self.maxd, other.maxd),
