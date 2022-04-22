@@ -2,7 +2,9 @@
 ### Unreleased
 
 - Updated to Rust 2021
-- Updated structopt to 0.3.26 and image to 0.24.0
+- Updated dependencies (structopt to 0.3.26, image to 0.24.0)
+- Print output file size in terminal output
+- Added ability to save defaults that will apply automatically were not overridden
 
 ### 0.1.3
 
