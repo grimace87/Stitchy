@@ -1,6 +1,9 @@
 
 # Stitchy
 
+![example workflow](https://github.com/grimace87/Stitchy/actions/workflows/cargo.yml/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/stitchy.svg)](https://crates.io/crates/stitchy)
+
 Joins multiple existing image files into a single output. Supports various flags for
 arranging the output or scaling down to desirable dimensions.
 
