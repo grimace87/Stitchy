@@ -318,6 +318,11 @@ impl ImageSet {
                 grid_y += 1;
             }
         }
+
+        // Check if the pen overshot the known boundary before filling a grid row
+        if self.largest_main_line_pixels < pen_x {
+            self.largest_main_line_pixels = pen_x;
+        }
     }
 
     fn generate_sizing_metadata_with_main_axis_vertical(&mut self) {
@@ -352,6 +357,11 @@ impl ImageSet {
                 grid_y = 0;
                 grid_x += 1;
             }
+        }
+
+        // Check if the pen overshot the known boundary before filling a grid column
+        if self.largest_main_line_pixels < pen_y {
+            self.largest_main_line_pixels = pen_y;
         }
     }
 
