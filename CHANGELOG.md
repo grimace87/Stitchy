@@ -1,4 +1,14 @@
 
+### Planned
+
+- Publish inner workings as a separate library crate called "stitchy-core"
+- More CLI output - display input/output file size ratio at least for single file transcoding
+- Fix: cannot save as PNG if defaults contain JPEG and quality setting
+- Fix: potential source files ignored if file extensions is uppercase
+- Fix: occasional issue where it refuses to operate with images due to their dimensions
+- Fix: black border sometimes present even in relatively simple scenarios
+- Unit testing: several tests confirming expected output dimensions given input dimensions
+
 ### 0.1.4 (April 22, 2022)
 
 - Updated to Rust 2021
