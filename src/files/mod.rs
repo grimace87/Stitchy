@@ -6,6 +6,7 @@ pub mod util;
 
 use crate::enums::ImageFormat;
 use crate::options::Opt;
+use std::ffi::OsStr;
 use std::time::SystemTime;
 use std::path::{Path, PathBuf};
 use image::DynamicImage;
@@ -68,16 +69,19 @@ impl ImageFiles {
                 }
 
                 // Get the extension and check it is accepted
-                let extension_acceptable: Option<()> = (|| {
-                    let extension = path
-                        .extension()?
-                        .to_str()?;
-                    if !accepted_extensions.contains(&extension) {
+                let extension_acceptable: Option<()> = {
+                    let extension = path.extension()
+                        .unwrap_or(OsStr::new(""))
+                        .to_ascii_lowercase();
+                    let lower_str_extension = extension
+                        .to_str()
+                        .unwrap_or("");
+                    if !accepted_extensions.contains(&lower_str_extension) {
                         None
                     } else {
                         Some(())
                     }
-                })();
+                };
                 if extension_acceptable.is_none() {
                     continue;
                 }
