@@ -10,14 +10,12 @@ readme = "README.md"
 keywords = ["image", "join"]
 categories = ["command-line-utilities", "multimedia::images"]
 exclude = [
-    "/images/testing/",
-    "/.dockerignore",
-    "/.Dockerfile"
+    "/images/testing/"
 ]
 
 [dependencies]
 structopt = { version = "0.3.26", default-features = false }
-image = { version = "0.24.0", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
-serde = { version = "1.0.100", features = ["derive"] }
-serde_json = "1.0.79"
+image = { version = "0.24.5", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
+serde = { version = "1.0.155", features = ["derive"] }
+serde_json = "1.0.94"
 home = "0.5.3"
