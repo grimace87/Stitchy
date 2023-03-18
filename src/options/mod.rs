@@ -1,0 +1,251 @@
+
+#[cfg(test)]
+mod tests;
+
+use serde::{Serialize, Deserialize};
+use structopt::StructOpt;
+use crate::{ImageFormat, AlignmentMode};
+
+const DEFAULT_QUALITY: usize = 100;
+
+#[derive(Debug, Clone, StructOpt, Serialize, Deserialize)]
+#[structopt(name = "")]
+pub struct Opt {
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub help: bool,
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub version: bool,
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub printdefaults: bool,
+
+    #[structopt(short, long)]
+    pub horizontal: bool,
+
+    #[structopt(short, long)]
+    pub vertical: bool,
+
+    #[structopt(long, default_value="0")]
+    pub maxd: usize,
+
+    #[structopt(long, default_value="0")]
+    pub maxw: usize,
+
+    #[structopt(long, default_value="0")]
+    pub maxh: usize,
+
+    #[structopt(short, long)]
+    pub reverse: bool,
+
+    #[structopt(long)]
+    pub jpeg: bool,
+
+    #[structopt(long)]
+    pub png: bool,
+
+    #[structopt(long)]
+    pub gif: bool,
+
+    #[structopt(long)]
+    pub bmp: bool,
+
+    #[structopt(long, default_value="100")]
+    pub quality: usize,
+
+    #[structopt(long)]
+    pub ascalpha: bool,
+
+    #[structopt(long)]
+    pub descalpha: bool,
+
+    #[structopt(required_unless_one =
+    &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
+    pub number_of_files: Option<usize>,
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub setdefaults: bool,
+
+    #[structopt(long)]
+    #[serde(skip_serializing, default)]
+    pub cleardefaults: bool
+}
+
+impl Default for Opt {
+    fn default() -> Self {
+        Opt {
+            help: false,
+            version: false,
+            printdefaults: false,
+            horizontal: false,
+            vertical: false,
+            maxd: 0,
+            maxw: 0,
+            maxh: 0,
+            reverse: false,
+            jpeg: false,
+            png: false,
+            gif: false,
+            bmp: false,
+            quality: DEFAULT_QUALITY,
+            ascalpha: false,
+            descalpha: false,
+            number_of_files: None,
+            setdefaults: false,
+            cleardefaults: false
+        }
+    }
+}
+
+impl Opt {
+
+    pub fn deserialise(json: &str) -> Option<Opt> {
+        let result = serde_json::from_str(json);
+        match result {
+            Ok(o) => o,
+            Err(e) => {
+                println!("Error deserialising settings: {:?}", e);
+                None
+            }
+        }
+    }
+
+    pub fn check_for_basic_errors(&self) -> Option<&'static str> {
+
+        // Verify not requesting both ascending and descending alphabetical order
+        if self.ascalpha && self.descalpha {
+            return Some("If selecting files based on alphabetical order, choose ascending or descending, not both.");
+        }
+
+        // Verify not requesting both horizontal and vertical
+        if self.horizontal && self.vertical {
+            return Some("Choose either horizontal or vertical (or neither), not both.");
+        }
+
+        // Verify not requesting overlapping constraints
+        if self.maxd > 0 && self.maxw > 0 {
+            return Some("If using maxd, do not specify maxw as well.");
+        }
+        if self.maxd > 0 && self.maxh > 0 {
+            return Some("If using maxd, do not specify maxh as well.");
+        }
+
+        // Choose one format only, or none at all
+        let format_flag_set: [bool; 4] = [self.jpeg, self.png, self.gif, self.bmp];
+        let format_flag_count: i32 = format_flag_set.iter().map(|&f| { if f { 1 } else { 0 } }).sum();
+        if format_flag_count > 1 {
+            return Some("You cannot specify more than one of image types JPEG, PNG, GIF and BMP.");
+        }
+
+        // Verify quality setting is within the appropriate range, and is only used for JPEG
+        if self.quality == 0 || self.quality > 100 {
+            return Some("The quality setting must be in the range of 1 to 100 inclusive.");
+        }
+        if self.quality != 100 && !self.jpeg && format_flag_count > 0 {
+            return Some("The quality setting can only be used for JPEG output.");
+        }
+
+        None
+    }
+
+    pub fn check_number_of_files_provided(&self) -> Option<&'static str> {
+
+        // Verify a sensible number was given
+        let number_of_files = match self.number_of_files {
+            Some(num) => num,
+            _ => return Some("You did not provide number_of_files and StructOpt did not catch this error")
+        };
+        if number_of_files == 0 {
+            return Some("The number of images to stitch must be at least 1.");
+        }
+
+        None
+    }
+
+    pub fn prepare_for_use(&mut self) {
+        if self.maxd > 0 {
+            self.maxw = self.maxd;
+            self.maxh = self.maxd;
+        }
+    }
+
+    pub fn get_requested_image_format(&self) -> ImageFormat {
+        if self.jpeg {
+            ImageFormat::Jpeg
+        } else if self.png {
+            ImageFormat::Png
+        } else if self.gif {
+            ImageFormat::Gif
+        } else if self.bmp {
+            ImageFormat::Bmp
+        } else {
+            ImageFormat::Unspecified
+        }
+    }
+
+    pub fn get_alignment(&self) -> AlignmentMode {
+        match (self.horizontal, self.vertical) {
+            (true, false) => AlignmentMode::Horizontal,
+            (false, true) => AlignmentMode::Vertical,
+            _ => AlignmentMode::Grid
+        }
+    }
+
+    pub fn serialise(&self) -> Option<String> {
+        let result = serde_json::to_string(self);
+        match result {
+            Ok(s) => Some(s),
+            Err(e) => {
+                println!("Error serialising settings: {:?}", e);
+                None
+            }
+        }
+    }
+
+    /// Sets the options included in the other instance
+    pub fn mix_in(self, other: Opt) -> Opt {
+        let number_of_files = match (self.number_of_files, other.number_of_files) {
+            (Some(i), None) => Some(i),
+            (None, Some(i)) => Some(i),
+            (Some(i), Some(_)) => Some(i),
+            _ => None
+        };
+        let base_has_axis = self.horizontal || self.vertical;
+        let base_has_format = self.jpeg || self.png || self.gif || self.bmp;
+        let base_constrains_dimensions = self.maxd != 0 || self.maxw != 0 || self.maxh != 0;
+        let base_sorts_alpha = self.ascalpha || self.descalpha;
+        Opt {
+            help: self.help,
+            version: self.version,
+            printdefaults: self.printdefaults,
+            horizontal: self.horizontal || (other.horizontal && !base_has_axis),
+            vertical: self.vertical || (other.vertical && !base_has_axis),
+            maxd: Self::if_else_int(base_constrains_dimensions, self.maxd, other.maxd),
+            maxw: Self::if_else_int(base_constrains_dimensions, self.maxw, other.maxw),
+            maxh: Self::if_else_int(base_constrains_dimensions, self.maxh, other.maxh),
+            reverse: self.reverse || other.reverse,
+            jpeg: self.jpeg || (other.jpeg && !base_has_format),
+            png: self.png || (other.png && !base_has_format),
+            gif: self.gif || (other.gif && !base_has_format),
+            bmp: self.bmp || (other.bmp && !base_has_format),
+            quality: Self::if_else_int(self.quality != DEFAULT_QUALITY, self.quality, other.quality),
+            ascalpha: self.ascalpha || (other.ascalpha && !base_sorts_alpha),
+            descalpha: self.descalpha || (other.descalpha && !base_sorts_alpha),
+            number_of_files,
+            setdefaults: self.setdefaults,
+            cleardefaults: self.cleardefaults
+        }
+    }
+
+    fn if_else_int(condition: bool, if_true: usize, if_false: usize) -> usize {
+        match condition {
+            true => if_true,
+            false => if_false
+        }
+    }
+}

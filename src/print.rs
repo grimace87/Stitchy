@@ -48,7 +48,7 @@ pub fn version() {
 }
 
 pub fn defaults() {
-    let load_attempt = crate::profiles::Profile::main().to_string();
+    let load_attempt = crate::profiles::Profile::main().into_string();
     if load_attempt.is_none() {
         println!("Did not find a {} for the current user.", crate::profiles::PROFILE_FILE_NAME);
         return;

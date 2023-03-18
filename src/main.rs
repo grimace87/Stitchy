@@ -1,9 +1,9 @@
-pub mod enums;
-pub mod files;
-pub mod image_set;
-pub mod options;
-pub mod print;
-pub mod profiles;
+mod enums;
+mod files;
+mod image_set;
+mod options;
+mod print;
+mod profiles;
 
 use enums::{AlignmentMode, ImageFormat};
 use files::ImageFiles;
@@ -38,7 +38,7 @@ fn main() {
         }
     } else if opt.cleardefaults {
         profiles::Profile::main().delete();
-    } else if let Some(json) = profiles::Profile::main().to_string() {
+    } else if let Some(json) = profiles::Profile::main().into_string() {
         if let Some(profile_opt) = options::Opt::deserialise(&json) {
             opt = opt.mix_in(profile_opt);
         }
@@ -88,8 +88,8 @@ fn run_with_options(opt: options::Opt) -> Result<String, String> {
         .stitch()?;
 
     // Write the output file, returning a success message or an error message
-    files::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
-    let output_string = match files::size_of_file(&output_file_path) {
+    files::util::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
+    let output_string = match files::util::size_of_file(&output_file_path) {
         Ok(size_string) => format!(
             "Created file: {:?}, {}", output_file_path.file_name().unwrap(), size_string
         ),

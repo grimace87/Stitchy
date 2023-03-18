@@ -1,4 +1,7 @@
 
+#[cfg(test)]
+mod tests;
+
 pub const PROFILE_FILE_NAME: &str = ".stitchyrc";
 
 pub struct Profile {
@@ -18,7 +21,7 @@ impl Profile {
         Profile { path: Some(path) }
     }
 
-    pub fn to_string(self) -> Option<String> {
+    pub fn into_string(self) -> Option<String> {
         let path = self.path?;
         match std::fs::read_to_string(path) {
             Ok(json) => Some(json),
@@ -51,19 +54,5 @@ impl Profile {
         let mut buff = home::home_dir()?;
         buff.push(PROFILE_FILE_NAME);
         Some(buff)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::Profile;
-
-    #[test]
-    fn text_written_reads_back() {
-        let test_content = "{\"greeting\":\"Ahoy!\"}".to_owned();
-        Profile::test_file().write_string(test_content.clone());
-        let retrieved = Profile::test_file().to_string()
-            .expect("Could not read written file");
-        assert_eq!(test_content, retrieved);
     }
 }
