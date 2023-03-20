@@ -104,6 +104,16 @@ impl Default for Opt {
 
 impl Opt {
 
+    #[inline]
+    fn supports_quality(&self) -> bool {
+        self.jpeg
+    }
+
+    #[inline]
+    fn names_of_format_supporting_quality() -> [&'static str; 1] {
+        ["JPEG"]
+    }
+
     pub fn deserialise(json: &str) -> Option<Opt> {
         let result = serde_json::from_str(json);
         match result {
@@ -115,39 +125,49 @@ impl Opt {
         }
     }
 
-    pub fn check_for_basic_errors(&self) -> Option<&'static str> {
+    pub fn check_for_basic_errors(&self, previous_options: &Option<Opt>) -> Option<String> {
 
         // Verify not requesting both ascending and descending alphabetical order
         if self.ascalpha && self.descalpha {
-            return Some("If selecting files based on alphabetical order, choose ascending or descending, not both.");
+            return Some("If selecting files based on alphabetical order, choose ascending or descending, not both.".to_owned());
         }
 
         // Verify not requesting both horizontal and vertical
         if self.horizontal && self.vertical {
-            return Some("Choose either horizontal or vertical (or neither), not both.");
+            return Some("Choose either horizontal or vertical (or neither), not both.".to_owned());
         }
 
         // Verify not requesting overlapping constraints
         if self.maxd > 0 && self.maxw > 0 {
-            return Some("If using maxd, do not specify maxw as well.");
+            return Some("If using maxd, do not specify maxw as well.".to_owned());
         }
         if self.maxd > 0 && self.maxh > 0 {
-            return Some("If using maxd, do not specify maxh as well.");
+            return Some("If using maxd, do not specify maxh as well.".to_owned());
         }
 
         // Choose one format only, or none at all
         let format_flag_set: [bool; 4] = [self.jpeg, self.png, self.gif, self.bmp];
-        let format_flag_count: i32 = format_flag_set.iter().map(|&f| { if f { 1 } else { 0 } }).sum();
+        let format_flag_count: usize = format_flag_set.iter()
+            .map(|&f| { if f { 1 } else { 0 } })
+            .sum();
         if format_flag_count > 1 {
-            return Some("You cannot specify more than one of image types JPEG, PNG, GIF and BMP.");
+            return Some("You cannot specify more than one of image types JPEG, PNG, GIF and BMP.".to_owned());
         }
 
-        // Verify quality setting is within the appropriate range, and is only used for JPEG
+        // Verify quality setting is within the appropriate range, and is only used for JPEG.
+        // Be careful that a quality setting loaded from settings is ignored when changing format.
         if self.quality == 0 || self.quality > 100 {
-            return Some("The quality setting must be in the range of 1 to 100 inclusive.");
+            return Some("The quality setting must be in the range of 1 to 100 inclusive.".to_owned());
         }
-        if self.quality != 100 && !self.jpeg && format_flag_count > 0 {
-            return Some("The quality setting can only be used for JPEG output.");
+        let quality_types = Self::names_of_format_supporting_quality();
+        let targeting_quality = self.quality != 100 && format_flag_count > 0;
+        let defaults_support_quality = match previous_options {
+            Some(options) => options.supports_quality(),
+            _ => false
+        };
+        if targeting_quality && !self.supports_quality() && !defaults_support_quality {
+            return Some(
+                format!("The quality setting can only be used for {} output.", quality_types[0]));
         }
 
         None
@@ -208,7 +228,7 @@ impl Opt {
     }
 
     /// Sets the options included in the other instance
-    pub fn mix_in(self, other: Opt) -> Opt {
+    pub fn mix_in(self, other: &Opt) -> Opt {
         let number_of_files = match (self.number_of_files, other.number_of_files) {
             (Some(i), None) => Some(i),
             (None, Some(i)) => Some(i),
@@ -225,27 +245,20 @@ impl Opt {
             printdefaults: self.printdefaults,
             horizontal: self.horizontal || (other.horizontal && !base_has_axis),
             vertical: self.vertical || (other.vertical && !base_has_axis),
-            maxd: Self::if_else_int(base_constrains_dimensions, self.maxd, other.maxd),
-            maxw: Self::if_else_int(base_constrains_dimensions, self.maxw, other.maxw),
-            maxh: Self::if_else_int(base_constrains_dimensions, self.maxh, other.maxh),
+            maxd: if base_constrains_dimensions { self.maxd } else { other.maxd },
+            maxw: if base_constrains_dimensions { self.maxw } else { other.maxw },
+            maxh: if base_constrains_dimensions { self.maxh } else { other.maxh },
             reverse: self.reverse || other.reverse,
             jpeg: self.jpeg || (other.jpeg && !base_has_format),
             png: self.png || (other.png && !base_has_format),
             gif: self.gif || (other.gif && !base_has_format),
             bmp: self.bmp || (other.bmp && !base_has_format),
-            quality: Self::if_else_int(self.quality != DEFAULT_QUALITY, self.quality, other.quality),
+            quality: if self.quality != DEFAULT_QUALITY { self.quality } else { other.quality },
             ascalpha: self.ascalpha || (other.ascalpha && !base_sorts_alpha),
             descalpha: self.descalpha || (other.descalpha && !base_sorts_alpha),
             number_of_files,
             setdefaults: self.setdefaults,
             cleardefaults: self.cleardefaults
-        }
-    }
-
-    fn if_else_int(condition: bool, if_true: usize, if_false: usize) -> usize {
-        match condition {
-            true => if_true,
-            false => if_false
         }
     }
 }

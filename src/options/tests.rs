@@ -65,7 +65,7 @@ fn serializes_okay() {
 
 #[test]
 fn test_default_is_valid() {
-    let error = make_test_default().check_for_basic_errors();
+    let error = make_test_default().check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
@@ -78,7 +78,7 @@ fn default_quailty_is_100() {
 #[test]
 fn choosing_both_directions_gives_error() {
     let error = Opt { horizontal: true, vertical: true, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     assert!(error.is_some());
 }
 
@@ -87,16 +87,16 @@ fn choosing_neither_direction_gives_no_error() {
     let opt = make_test_default();
     assert_eq!(opt.horizontal, false);
     assert_eq!(opt.vertical, false);
-    let error = opt.check_for_basic_errors();
+    let error = opt.check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn setting_general_and_specific_dimension_constraints_gives_error() {
-    let error_1 = Opt { maxd: 100, maxw: 100, ..make_test_default() }.check_for_basic_errors();
-    let error_2 = Opt { maxd: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors();
+    let error_1 = Opt { maxd: 100, maxw: 100, ..make_test_default() }.check_for_basic_errors(&None);
+    let error_2 = Opt { maxd: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors(&None);
     let error_3 = Opt { maxd: 100, maxw: 100, maxh: 100, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
@@ -104,24 +104,24 @@ fn setting_general_and_specific_dimension_constraints_gives_error() {
 
 #[test]
 fn setting_both_specific_dimension_constraints_gives_no_error() {
-    let error = Opt { maxw: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors();
+    let error = Opt { maxw: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn setting_zero_dimension_constraints_gives_no_error() {
     let error = Opt { maxd: 0, maxw: 0, maxh: 0, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn choosing_multiple_formats_gives_error() {
-    let error_1 = Opt { jpeg: true, png: true, ..make_test_default() }.check_for_basic_errors();
-    let error_2 = Opt { png: true, gif: true, ..make_test_default() }.check_for_basic_errors();
-    let error_3 = Opt { gif: true, bmp: true, ..make_test_default() }.check_for_basic_errors();
+    let error_1 = Opt { jpeg: true, png: true, ..make_test_default() }.check_for_basic_errors(&None);
+    let error_2 = Opt { png: true, gif: true, ..make_test_default() }.check_for_basic_errors(&None);
+    let error_3 = Opt { gif: true, bmp: true, ..make_test_default() }.check_for_basic_errors(&None);
     let error_4 = Opt { jpeg: true, png: true, gif: true, bmp: true, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
@@ -135,18 +135,18 @@ fn choosing_no_format_gives_no_error() {
     assert_eq!(opt.png, false);
     assert_eq!(opt.gif, false);
     assert_eq!(opt.bmp, false);
-    let error = opt.check_for_basic_errors();
+    let error = opt.check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn choosing_quality_for_non_jpeg_gives_error() {
     let error_1 = Opt { png: true, quality: 50, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     let error_2 = Opt { gif: true, quality: 50, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     let error_3 = Opt { bmp: true, quality: 50, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
@@ -154,20 +154,20 @@ fn choosing_quality_for_non_jpeg_gives_error() {
 
 #[test]
 fn choosing_quality_for_jpeg_gives_no_error() {
-    let error = Opt { jpeg: true, quality: 50, ..make_test_default() }.check_for_basic_errors();
+    let error = Opt { jpeg: true, quality: 50, ..make_test_default() }.check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn choosing_silly_quality_gives_error() {
-    let error = Opt { jpeg: true, quality: 250, ..make_test_default() }.check_for_basic_errors();
+    let error = Opt { jpeg: true, quality: 250, ..make_test_default() }.check_for_basic_errors(&None);
     assert!(error.is_some());
 }
 
 #[test]
 fn choosing_ascending_and_descending_gives_error() {
     let error = Opt { ascalpha: true, descalpha: true, ..make_test_default() }
-        .check_for_basic_errors();
+        .check_for_basic_errors(&None);
     assert!(error.is_some());
 }
 
@@ -176,7 +176,7 @@ fn choosing_neither_ascending_nor_descending_gives_no_error() {
     let opt = make_test_default();
     assert_eq!(opt.ascalpha, false);
     assert_eq!(opt.descalpha, false);
-    let error = opt.check_for_basic_errors();
+    let error = opt.check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
@@ -197,7 +197,7 @@ fn base_options_favoured_in_classes() {
         descalpha: true,
         ..Opt::default()
     };
-    let merged = base.mix_in(mixer);
+    let merged = base.mix_in(&mixer);
     assert_eq!(merged.horizontal, true);
     assert_eq!(merged.vertical, false);
     assert_eq!(merged.maxd, 0);
@@ -225,7 +225,7 @@ fn mixin_preserves_mixer_booleans() {
         descalpha: true,
         ..Opt::default()
     };
-    let merged = Opt::default().mix_in(mixer);
+    let merged = Opt::default().mix_in(&mixer);
     assert!(merged.horizontal);
     assert!(merged.vertical);
     assert!(merged.reverse);
@@ -251,7 +251,7 @@ fn mixin_preserves_original_booleans() {
         descalpha: true,
         ..Opt::default()
     };
-    let merged = base.mix_in(Opt::default());
+    let merged = base.mix_in(&Opt::default());
     assert!(merged.horizontal);
     assert!(merged.vertical);
     assert!(merged.reverse);
@@ -272,7 +272,7 @@ fn mixin_preserves_mixer_integers() {
         quality: 80,
         ..Opt::default()
     };
-    let merged = Opt::default().mix_in(mixer);
+    let merged = Opt::default().mix_in(&mixer);
     assert_eq!(merged.maxd, 100);
     assert_eq!(merged.maxw, 200);
     assert_eq!(merged.maxh, 50);
@@ -288,7 +288,7 @@ fn mixin_preserves_original_integers() {
         quality: 80,
         ..Opt::default()
     };
-    let merged = base.mix_in(Opt::default());
+    let merged = base.mix_in(&Opt::default());
     assert_eq!(merged.maxd, 100);
     assert_eq!(merged.maxw, 200);
     assert_eq!(merged.maxh, 50);
@@ -311,7 +311,7 @@ fn mixin_favours_original_integers() {
         quality: 40,
         ..Opt::default()
     };
-    let merged = base.mix_in(mixer);
+    let merged = base.mix_in(&mixer);
     assert_eq!(merged.maxd, 100);
     assert_eq!(merged.maxw, 200);
     assert_eq!(merged.maxh, 50);
@@ -328,7 +328,7 @@ fn mixin_preserves_non_default_quality() {
         quality: 40,
         ..Opt::default()
     };
-    let merged = base.mix_in(mixer);
+    let merged = base.mix_in(&mixer);
     assert_eq!(merged.quality, 40);
 }
 
@@ -336,13 +336,13 @@ fn mixin_preserves_non_default_quality() {
 fn mixin_preserves_some_number_of_files() {
     let base = Opt { number_of_files: Some(5), ..Opt::default() };
     let mixer = Opt { number_of_files: None, ..Opt::default() };
-    let merged_1 = base.mix_in(mixer);
+    let merged_1 = base.mix_in(&mixer);
     let base = Opt { number_of_files: None, ..Opt::default() };
     let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
-    let merged_2 = base.mix_in(mixer);
+    let merged_2 = base.mix_in(&mixer);
     let base = Opt { number_of_files: None, ..Opt::default() };
     let mixer = Opt { number_of_files: None, ..Opt::default() };
-    let merged_3 = base.mix_in(mixer);
+    let merged_3 = base.mix_in(&mixer);
     assert!(merged_1.number_of_files.is_some());
     assert!(merged_2.number_of_files.is_some());
     assert!(merged_3.number_of_files.is_none());
@@ -352,6 +352,6 @@ fn mixin_preserves_some_number_of_files() {
 fn mixin_favours_original_number_of_files() {
     let base = Opt { number_of_files: Some(5), ..Opt::default() };
     let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
-    let merged_number = base.mix_in(mixer).number_of_files.unwrap();
+    let merged_number = base.mix_in(&mixer).number_of_files.unwrap();
     assert_eq!(merged_number, 5);
 }

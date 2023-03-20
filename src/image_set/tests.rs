@@ -45,6 +45,35 @@ pub fn test_types() {
 }
 
 #[test]
+fn mixin_quality_ignored_for_png_override() {
+
+    // Clear existing file
+    let clear_result = clear_output();
+    assert!(
+        clear_result.is_ok(),
+        "{}", clear_result.err().unwrap_or(String::new()));
+
+    // Get files from test directory
+    let retrieve_files_result =
+        ImageFiles::from_directory(vec!("images", "testing", "test_types"));
+    assert!(
+        retrieve_files_result.is_ok(),
+        "{}", retrieve_files_result.err().unwrap_or(String::new()));
+
+    // Process files, generate output
+    let image_files = retrieve_files_result.unwrap()
+        .into_image_contents().unwrap();
+    let loaded_defaults = Opt { number_of_files: Some(1), jpeg: true, quality: 50, ..Opt::default() };
+    let options = Opt { number_of_files: Some(image_files.len()), png: true, ..Opt::default() }
+        .mix_in(&loaded_defaults);
+    let process_result = ImageSet::new(image_files, &options)
+        .stitch();
+    assert!(
+        process_result.is_ok(),
+        "{}", process_result.err().unwrap_or(String::new()));
+}
+
+#[test]
 pub fn test_unusual_inputs() {
 
     // Clear existing file

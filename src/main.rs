@@ -28,8 +28,9 @@ fn main() {
     }
 
     // Save options if requested, or try to load stored options otherwise
+    let mut previous_options: Option<options::Opt> = None;
     if opt.setdefaults {
-        if let Some(error) = opt.check_for_basic_errors() {
+        if let Some(error) = opt.check_for_basic_errors(&None) {
             println!("Cannot save settings. {}", error);
             return;
         }
@@ -40,7 +41,8 @@ fn main() {
         profiles::Profile::main().delete();
     } else if let Some(json) = profiles::Profile::main().into_string() {
         if let Some(profile_opt) = options::Opt::deserialise(&json) {
-            opt = opt.mix_in(profile_opt);
+            opt = opt.mix_in(&profile_opt);
+            previous_options = Some(profile_opt);
         }
     }
 
@@ -51,7 +53,7 @@ fn main() {
     }
 
     // Perform simple validation
-    if let Some(error) = opt.check_for_basic_errors() {
+    if let Some(error) = opt.check_for_basic_errors(&previous_options) {
         println!("{}", error);
         return;
     }
