@@ -17,7 +17,8 @@ pub struct ImageFiles {
 
 pub struct FileProperties {
     full_path: String,
-    modify_time: SystemTime
+    modify_time: SystemTime,
+    size_bytes: u64
 }
 
 impl ImageFiles {
@@ -93,13 +94,15 @@ impl ImageFiles {
                 };
 
                 // Get file modify date from its metadata
-                let modify_time: Result<SystemTime, String> = (|| {
-                    path
+                let (modify_time, size_bytes) = {
+                    let metadata = path
                         .metadata()
-                        .map_err(|_| format!("Failed reading metadata for: {}", path_str))?
+                        .map_err(|_| format!("Failed reading metadata for: {}", path_str))?;
+                    let time_result = metadata
                         .modified()
-                        .map_err(|_| format!("Failed reading modify date for: {}", path_str))
-                })();
+                        .map_err(|_| format!("Failed reading modify date for: {}", path_str));
+                    (time_result, metadata.len())
+                };
                 if modify_time.is_err() {
                     println!("{}", modify_time.unwrap_err());
                     continue;
@@ -108,7 +111,8 @@ impl ImageFiles {
                 // All seems well, push this file's properties into the vector
                 let properties = FileProperties {
                     full_path: path_str.to_string(),
-                    modify_time: modify_time.unwrap()
+                    modify_time: modify_time.unwrap(),
+                    size_bytes
                 };
                 image_files.push(properties);
             }
@@ -118,6 +122,14 @@ impl ImageFiles {
         Ok(ImageFiles {
             file_list: image_files
         })
+    }
+
+    pub fn total_size(&self) -> u64 {
+        let mut total = 0;
+        for file in self.file_list.iter() {
+            total += file.size_bytes;
+        }
+        total
     }
 
     /// Sorts the files according to the options supplied, and truncates the set to the
@@ -170,7 +182,8 @@ impl ImageFiles {
             let w = image.width();
             let h = image.height();
             if let Some(file_name) = path.file_name() {
-                println!("Path: {}, w: {}, h: {}", file_name.to_str().unwrap(), w, h);
+                println!("Path: {}, w: {}, h: {}, {}",
+                    file_name.to_str().unwrap(), w, h, util::make_size_string(file.size_bytes));
             }
 
             // Collect values to return

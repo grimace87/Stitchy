@@ -2,7 +2,8 @@
 ### Planned
 
 - Publish inner workings as a separate library crate called "stitchy-core"
-- More CLI output - display input/output file size ratio at least for single file transcoding
+- Ensure public API types implement Debug, Clone, Default, PartialEq, Send + Sync where appropriate
+- Make image selection more intuitive - flags such as `--order-by`, `--take-from` and `--reverse`
 - Fix: cannot save as PNG if defaults contain JPEG and quality setting
 - Fix: occasional issue where it refuses to operate with images due to their dimensions
 - Fix: black border sometimes present even in relatively simple scenarios
@@ -10,6 +11,7 @@
 
 ### 0.1.5 (Unreleased)
 
+- Added input/output file sizes and ratio to console output
 - Fix: source files with uppercase letters in their extensions are no longer ignored
 
 ### 0.1.4 (April 22, 2022)

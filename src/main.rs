@@ -79,6 +79,7 @@ fn run_with_options(opt: options::Opt) -> Result<String, String> {
     // Determine the list of files to use as input, and from those, determine the output path
     let image_sources = ImageFiles::from_directory(vec!())?
         .sort_and_truncate_by(&opt)?;
+    let total_source_size = image_sources.total_size();
     let output_format = image_sources.determine_output_format(&opt)?;
     let output_file_path = image_sources.next_available_output(&opt)?;
 
@@ -90,12 +91,16 @@ fn run_with_options(opt: options::Opt) -> Result<String, String> {
     // Write the output file, returning a success message or an error message
     files::util::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
     let output_string = match files::util::size_of_file(&output_file_path) {
-        Ok(size_string) => format!(
-            "Created file: {:?}, {}", output_file_path.file_name().unwrap(), size_string
-        ),
-        Err(_) => format!(
-            "Created file: {:?}", output_file_path.file_name().unwrap()
-        )
+        Ok(size_bytes) =>
+            format!(
+                "Created file: {:?}, {}, ({})",
+                output_file_path.file_name().unwrap(),
+                files::util::make_size_string(size_bytes),
+                files::util::make_ratio_string(total_source_size, size_bytes)),
+        Err(_) =>
+            format!(
+                "Created file: {:?}",
+                output_file_path.file_name().unwrap())
     };
     Ok(output_string)
 }

@@ -22,12 +22,11 @@ pub(crate) fn write_image_to_file(image: DynamicImage, file_path: &Path, format:
     }
 }
 
-pub(crate) fn size_of_file(file_path: &Path) -> Result<String, String> {
+pub(crate) fn size_of_file(file_path: &Path) -> Result<u64, String> {
     let length_bytes = file_path.metadata()
         .map_err(|_| "File metadata could not be read.".to_owned())?
         .len();
-    let length_string = make_size_string(length_bytes);
-    Ok(length_string)
+    Ok(length_bytes)
 }
 
 pub(crate) fn make_size_string(length_bytes: u64) -> String {
@@ -46,4 +45,12 @@ pub(crate) fn make_size_string(length_bytes: u64) -> String {
         ),
         l => format!("{} MiB", l / BYTES_MIB)
     }
+}
+
+pub(crate) fn make_ratio_string(input_size: u64, output_size: u64) -> String {
+    if input_size == 0 {
+        return "-".to_owned();
+    }
+    let ratio = (output_size as f64) / (input_size as f64);
+    format!("{:.0}%", ratio * 100.0)
 }
