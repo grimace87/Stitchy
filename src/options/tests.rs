@@ -1,5 +1,5 @@
 
-use super::Opt;
+use super::{Opt, deserialise_as_current};
 
 const TEST_JSON: &str = "{ \
          \"horizontal\": true, \
@@ -354,4 +354,13 @@ fn mixin_favours_original_number_of_files() {
     let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
     let merged_number = base.mix_in(&mixer).number_of_files.unwrap();
     assert_eq!(merged_number, 5);
+}
+
+#[test]
+fn v1_options_does_deserialise() {
+    let test_str = "{\"horizontal\":true,\"vertical\":false,\"maxd\":0,\"maxw\":0,\"maxh\":0\
+        ,\"reverse\":false,\"jpeg\":false,\"png\":true,\"gif\":false,\"bmp\":false,\"quality\":100\
+        ,\"ascalpha\":true,\"descalpha\":false,\"number_of_files\":null}";
+    let options = deserialise_as_current(test_str);
+    assert!(options.is_some());
 }
