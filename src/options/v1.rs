@@ -1,73 +1,72 @@
 
+use clap::Parser;
 use serde::Deserialize;
-use structopt::StructOpt;
 
 const DEFAULT_QUALITY: usize = 100;
 
-#[derive(Debug, Clone, StructOpt, Deserialize)]
-#[structopt(name = "")]
+#[derive(Debug, Clone, Parser, Deserialize)]
 pub struct Opt {
 
-    #[structopt(long)]
+    #[arg(long)]
     #[serde(skip_serializing, default)]
     pub help: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     #[serde(skip_serializing, default)]
     pub version: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     #[serde(skip_serializing, default)]
     pub printdefaults: bool,
 
-    #[structopt(short, long)]
+    #[arg(short, long)]
     pub horizontal: bool,
 
-    #[structopt(short, long)]
+    #[arg(short, long)]
     pub vertical: bool,
 
-    #[structopt(long, default_value="0")]
+    #[arg(long, default_value="0")]
     pub maxd: usize,
 
-    #[structopt(long, default_value="0")]
+    #[arg(long, default_value="0")]
     pub maxw: usize,
 
-    #[structopt(long, default_value="0")]
+    #[arg(long, default_value="0")]
     pub maxh: usize,
 
-    #[structopt(short, long)]
+    #[arg(short, long)]
     pub reverse: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     pub jpeg: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     pub png: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     pub gif: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     pub bmp: bool,
 
-    #[structopt(long, default_value="100")]
+    #[arg(long, default_value="100")]
     pub quality: usize,
 
-    #[structopt(long)]
+    #[arg(long)]
     pub ascalpha: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     pub descalpha: bool,
 
-    #[structopt(required_unless_one =
+    #[arg(required_unless_present_any =
     &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
     pub number_of_files: Option<usize>,
 
-    #[structopt(long)]
+    #[arg(long)]
     #[serde(skip_serializing, default)]
     pub setdefaults: bool,
 
-    #[structopt(long)]
+    #[arg(long)]
     #[serde(skip_serializing, default)]
     pub cleardefaults: bool
 }

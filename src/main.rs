@@ -8,12 +8,12 @@ mod profiles;
 use enums::{AlignmentMode, ImageFormat};
 use files::ImageFiles;
 use image_set::ImageSet;
-use structopt::StructOpt;
+use clap::Parser;
 
 fn main() {
 
     // Get command line args, check for flags that merely print to the console and exit
-    let mut opt = options::Opt::from_args();
+    let mut opt = options::Opt::parse();
     if opt.help {
         print::help();
         return;
