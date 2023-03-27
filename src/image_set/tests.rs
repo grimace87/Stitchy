@@ -1,5 +1,5 @@
 
-use crate::enums::ImageFormat;
+use crate::enums::{ImageFormat, OrderBy};
 use crate::files::ImageFiles;
 use crate::image_set::ImageSet;
 use crate::options::Opt;
@@ -110,6 +110,30 @@ pub fn test_unusual_inputs() {
     assert!(
         process_result.is_ok(),
         "{}", process_result.err().unwrap_or(String::new()));
+}
+
+#[test]
+pub fn test_output_dimensions() {
+
+    // Clear existing file
+    let clear_result = clear_output();
+    assert!(
+        clear_result.is_ok(),
+        "{}", clear_result.err().unwrap_or(String::new()));
+
+    // Stitch first 3 files
+    let options = Opt {
+        number_of_files: Some(3), horizontal: true, order: Some(OrderBy::Alphabetic),
+        ..Opt::default() };
+    let image_files = ImageFiles::
+        from_directory(vec!("images", "testing", "test_output_dimensions")).unwrap()
+        .sort_and_truncate_by(&options).unwrap()
+        .into_image_contents().unwrap();
+    let process_result = ImageSet::new(image_files, &options).stitch().unwrap();
+
+    // Assert dimensions
+    assert_eq!(process_result.width(), 3240);
+    assert_eq!(process_result.height(), 2280);
 }
 
 #[test]
