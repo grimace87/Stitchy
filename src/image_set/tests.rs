@@ -1,3 +1,4 @@
+
 use crate::enums::ImageFormat;
 use crate::files::ImageFiles;
 use crate::image_set::ImageSet;
@@ -34,9 +35,13 @@ pub fn test_types() {
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
     // Process files, generate output
-    let image_files = retrieve_files_result.unwrap()
+    let retrieved_files = retrieve_files_result.unwrap();
+    let options = Opt {
+        number_of_files: Some(retrieved_files.file_count()), jpeg: true, ..Opt::default()
+    };
+    let image_files = retrieved_files
+        .sort_and_truncate_by(&options).unwrap()
         .into_image_contents().unwrap();
-    let options = Opt { number_of_files: Some(image_files.len()), jpeg: true, ..Opt::default() };
     let process_result = ImageSet::new(image_files, &options)
         .stitch();
     assert!(
@@ -61,11 +66,13 @@ fn mixin_quality_ignored_for_png_override() {
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
     // Process files, generate output
-    let image_files = retrieve_files_result.unwrap()
-        .into_image_contents().unwrap();
+    let retrieved_files = retrieve_files_result.unwrap();
     let loaded_defaults = Opt { number_of_files: Some(1), jpeg: true, quality: 50, ..Opt::default() };
-    let options = Opt { number_of_files: Some(image_files.len()), png: true, ..Opt::default() }
+    let options = Opt { number_of_files: Some(retrieved_files.file_count()), png: true, ..Opt::default() }
         .mix_in(&loaded_defaults);
+    let image_files = retrieved_files
+        .sort_and_truncate_by(&options).unwrap()
+        .into_image_contents().unwrap();
     let process_result = ImageSet::new(image_files, &options)
         .stitch();
     assert!(
@@ -90,12 +97,14 @@ pub fn test_unusual_inputs() {
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
     // Unpack input images, confirm correct number
-    let image_files = retrieve_files_result.unwrap()
-        .into_image_contents().unwrap();
-    assert_eq!(image_files.len(), 2);
+    let retrieved_files = retrieve_files_result.unwrap();
+    assert_eq!(retrieved_files.file_count(), 2);
 
     // Process files, generate output
-    let options = Opt { number_of_files: Some(image_files.len()), jpeg: true, ..Opt::default() };
+    let options = Opt { number_of_files: Some(retrieved_files.file_count()), jpeg: true, ..Opt::default() };
+    let image_files = retrieved_files
+        .sort_and_truncate_by(&options).unwrap()
+        .into_image_contents().unwrap();
     let process_result = ImageSet::new(image_files, &options)
         .stitch();
     assert!(
@@ -104,7 +113,7 @@ pub fn test_unusual_inputs() {
 }
 
 #[test]
-pub fn test_sizes() {
+pub fn test_file_counts() {
 
     // Attempt increasing number of files, from 2 to 10
     for i in 2..11 {
@@ -117,15 +126,16 @@ pub fn test_sizes() {
 
         // Get files from test directory
         let retrieve_files_result = ImageFiles::from_directory(
-            vec!("images", "testing", "test_sizes"));
+            vec!("images", "testing", "test_file_counts"));
         assert!(
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
         // Process files, generate output
-        let image_files = retrieve_files_result.unwrap()
-            .into_image_contents().unwrap();
         let options = Opt { number_of_files: Some(i), jpeg: true, ..Opt::default() };
+        let image_files = retrieve_files_result.unwrap()
+            .sort_and_truncate_by(&options).unwrap()
+            .into_image_contents().unwrap();
         let process_result = ImageSet::new(image_files, &options)
             .stitch();
         assert!(
@@ -153,29 +163,32 @@ pub fn test_output_formats() {
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
-        // Process input files
-        let image_files = retrieve_files_result.unwrap()
-            .into_image_contents().unwrap();
-
         // Build options set matching the image format under test
+        let retrieved_files = retrieve_files_result.unwrap();
+        let all_files_count = retrieved_files.file_count();
         let format = ImageFormat::infer_format(extension);
         let options = match format {
             ImageFormat::Jpeg => Opt {
-                number_of_files: Some(image_files.len()), jpeg: true, ..Opt::default()
+                number_of_files: Some(all_files_count), jpeg: true, ..Opt::default()
             },
             ImageFormat::Png => Opt {
-                number_of_files: Some(image_files.len()), png: true, ..Opt::default()
+                number_of_files: Some(all_files_count), png: true, ..Opt::default()
             },
             ImageFormat::Bmp => Opt {
-                number_of_files: Some(image_files.len()), bmp: true, ..Opt::default()
+                number_of_files: Some(all_files_count), bmp: true, ..Opt::default()
             },
             ImageFormat::Gif => Opt {
-                number_of_files: Some(image_files.len()), gif: true, ..Opt::default()
+                number_of_files: Some(all_files_count), gif: true, ..Opt::default()
             },
             ImageFormat::Unspecified => Opt {
-                number_of_files: Some(image_files.len()), ..Opt::default()
+                number_of_files: Some(all_files_count), ..Opt::default()
             }
         };
+
+        // Process input files
+        let image_files = retrieved_files
+            .sort_and_truncate_by(&options).unwrap()
+            .into_image_contents().unwrap();
 
         // Perform stitch on inputs
         let process_result = ImageSet::new(image_files, &options)

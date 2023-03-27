@@ -124,6 +124,12 @@ impl ImageFiles {
         })
     }
 
+    /// Get number of files in the current working set
+    #[cfg(test)]
+    pub fn file_count(&self) -> usize {
+        self.file_list.len()
+    }
+
     pub fn total_size(&self) -> u64 {
         let mut total = 0;
         for file in self.file_list.iter() {
