@@ -4,7 +4,7 @@ mod tests;
 
 pub mod util;
 
-use crate::enums::ImageFormat;
+use crate::enums::{ImageFormat, OrderBy, TakeFrom};
 use crate::options::Opt;
 use std::ffi::OsStr;
 use std::time::SystemTime;
@@ -146,23 +146,38 @@ impl ImageFiles {
                 format!("Requested {} files, found {}", number_of_files, self.file_list.len()));
         }
 
-        // Sort by ascending or descending alphabetical order, or by descending-order modify date, then take n.
-        // Idea of 'naturally ordered' means that after taking n from start of the vector, the files will
-        // be in the order in which they should be stitched, though the 'reverse' flag inverts this behaviour.
-        let naturally_ordered: bool = if options.ascalpha {
-            self.file_list.sort_unstable_by(|a, b| a.full_path.cmp(&b.full_path));
-            true
-        } else if options.descalpha {
-            self.file_list.sort_unstable_by(|a, b| a.full_path.cmp(&b.full_path).reverse());
-            true
-        } else {
-            self.file_list.sort_unstable_by(|a, b| a.modify_time.cmp(&b.modify_time).reverse());
-            false
-        };
+        // Sort the files by the order given, putting files at the start of the vector according to
+        // whether we should take from the default end (most recently updated or alphabetically
+        // first) or take from the other end (oldest update or alphabetically last)
+        let order_by = options.order.unwrap_or(OrderBy::Latest);
+        let take_from = options.take_from.unwrap_or(TakeFrom::Start);
+        match (order_by, take_from) {
+            (OrderBy::Latest, TakeFrom::Start) => {
+                self.file_list.sort_unstable_by(|a, b|
+                    a.modify_time.cmp(&b.modify_time).reverse());
+            },
+            (OrderBy::Latest, TakeFrom::End) => {
+                self.file_list.sort_unstable_by(|a, b|
+                    a.modify_time.cmp(&b.modify_time));
+            },
+            (OrderBy::Alphabetic, TakeFrom::Start) => {
+                self.file_list.sort_unstable_by(|a, b|
+                    a.full_path.cmp(&b.full_path));
+            },
+            (OrderBy::Alphabetic, TakeFrom::End) => {
+                self.file_list.sort_unstable_by(|a, b|
+                    a.full_path.cmp(&b.full_path).reverse());
+            }
+        }
         self.file_list.truncate(number_of_files);
 
+        // 'Natural' order of selected files based on date is oldest to newest, which is the reverse
+        // of the order generated above, or alphabetically earliest to latest, which is the same
+        // as the order from above
+        let reverse_order = options.reverse ^ (order_by == OrderBy::Latest);
+
         // Revert to chronological order, unless the reverse order was requested
-        if options.reverse ^ !naturally_ordered {
+        if reverse_order {
             self.file_list.reverse();
         }
 

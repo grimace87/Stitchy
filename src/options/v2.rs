@@ -1,7 +1,7 @@
 
 use clap::Parser;
 use serde::{Serialize, Deserialize};
-use crate::{ImageFormat, AlignmentMode};
+use crate::{ImageFormat, AlignmentMode, TakeFrom, OrderBy};
 use crate::options::OptV1;
 
 pub const DEFAULT_QUALITY: usize = 100;
@@ -39,6 +39,9 @@ pub struct Opt {
     #[arg(short, long)]
     pub reverse: bool,
 
+    #[arg(long = "take-from")]
+    pub take_from: Option<TakeFrom>,
+
     #[arg(long)]
     pub jpeg: bool,
 
@@ -55,10 +58,7 @@ pub struct Opt {
     pub quality: usize,
 
     #[arg(long)]
-    pub ascalpha: bool,
-
-    #[arg(long)]
-    pub descalpha: bool,
+    pub order: Option<OrderBy>,
 
     #[arg(required_unless_present_any =
     &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
@@ -85,13 +85,13 @@ impl Default for Opt {
             maxw: 0,
             maxh: 0,
             reverse: false,
+            take_from: None,
             jpeg: false,
             png: false,
             gif: false,
             bmp: false,
             quality: DEFAULT_QUALITY,
-            ascalpha: false,
-            descalpha: false,
+            order: None,
             number_of_files: None,
             setdefaults: false,
             cleardefaults: false
@@ -123,11 +123,6 @@ impl Opt {
     }
 
     pub fn check_for_basic_errors(&self, previous_options: &Option<Opt>) -> Option<String> {
-
-        // Verify not requesting both ascending and descending alphabetical order
-        if self.ascalpha && self.descalpha {
-            return Some("If selecting files based on alphabetical order, choose ascending or descending, not both.".to_owned());
-        }
 
         // Verify not requesting both horizontal and vertical
         if self.horizontal && self.vertical {
@@ -232,10 +227,17 @@ impl Opt {
             (Some(i), Some(_)) => Some(i),
             _ => None
         };
+        let take_from = match (self.take_from, other.take_from) {
+            (None, that) => that,
+            (this, _) => this
+        };
         let base_has_axis = self.horizontal || self.vertical;
         let base_has_format = self.jpeg || self.png || self.gif || self.bmp;
         let base_constrains_dimensions = self.maxd != 0 || self.maxw != 0 || self.maxh != 0;
-        let base_sorts_alpha = self.ascalpha || self.descalpha;
+        let order = match (self.order, other.order) {
+            (None, that) => that,
+            (this, _) => this
+        };
         Opt {
             help: self.help,
             version: self.version,
@@ -246,13 +248,13 @@ impl Opt {
             maxw: if base_constrains_dimensions { self.maxw } else { other.maxw },
             maxh: if base_constrains_dimensions { self.maxh } else { other.maxh },
             reverse: self.reverse || other.reverse,
+            take_from,
             jpeg: self.jpeg || (other.jpeg && !base_has_format),
             png: self.png || (other.png && !base_has_format),
             gif: self.gif || (other.gif && !base_has_format),
             bmp: self.bmp || (other.bmp && !base_has_format),
             quality: if self.quality != DEFAULT_QUALITY { self.quality } else { other.quality },
-            ascalpha: self.ascalpha || (other.ascalpha && !base_sorts_alpha),
-            descalpha: self.descalpha || (other.descalpha && !base_sorts_alpha),
+            order,
             number_of_files,
             setdefaults: self.setdefaults,
             cleardefaults: self.cleardefaults
@@ -262,6 +264,20 @@ impl Opt {
 
 impl From<OptV1> for Opt {
     fn from(value: OptV1) -> Self {
+
+        // Translate between fields
+        let alphabetic = value.ascalpha || value.descalpha;
+        let take_from = match (value.ascalpha, value.ascalpha ^ value.descalpha) {
+            (_, false) => TakeFrom::Start,
+            (true, true) => TakeFrom::Start,
+            (false, true) => TakeFrom::End,
+        };
+        let order = match alphabetic {
+            true => OrderBy::Alphabetic,
+            false => OrderBy::Latest
+        };
+
+        // Return new type
         Opt {
             help: value.help,
             version: value.version,
@@ -272,13 +288,13 @@ impl From<OptV1> for Opt {
             maxw: value.maxw,
             maxh: value.maxh,
             reverse: value.reverse,
+            take_from: Some(take_from),
             jpeg: value.jpeg,
             png: value.png,
             gif: value.gif,
             bmp: value.bmp,
             quality: value.quality,
-            ascalpha: value.ascalpha,
-            descalpha: value.descalpha,
+            order: Some(order),
             number_of_files: value.number_of_files,
             setdefaults: value.setdefaults,
             cleardefaults: value.cleardefaults,

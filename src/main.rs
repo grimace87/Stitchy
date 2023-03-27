@@ -5,7 +5,7 @@ mod options;
 mod print;
 mod profiles;
 
-use enums::{AlignmentMode, ImageFormat};
+use enums::{AlignmentMode, ImageFormat, TakeFrom, OrderBy};
 use files::ImageFiles;
 use image_set::ImageSet;
 use clap::Parser;
@@ -40,7 +40,7 @@ fn main() {
     } else if opt.cleardefaults {
         profiles::Profile::main().delete();
     } else if let Some(json) = profiles::Profile::main().into_string() {
-        if let Some(profile_opt) = options::Opt::deserialise(&json) {
+        if let Some(profile_opt) = options::deserialise_as_current(&json) {
             opt = opt.mix_in(&profile_opt);
             previous_options = Some(profile_opt);
         }

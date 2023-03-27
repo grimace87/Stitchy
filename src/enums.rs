@@ -1,4 +1,7 @@
 
+use clap::ValueEnum;
+use serde::{Serialize, Deserialize};
+
 pub enum AspectType {
     Wide,
     Portrait,
@@ -29,6 +32,18 @@ pub enum AlignmentMode {
 pub enum Axis {
     Horizontal,
     Vertical
+}
+
+#[derive(Eq, PartialEq, Debug, Copy, Clone, ValueEnum, Serialize, Deserialize)]
+pub enum TakeFrom {
+    Start,
+    End
+}
+
+#[derive(Eq, PartialEq, Debug, Copy, Clone, ValueEnum, Serialize, Deserialize)]
+pub enum OrderBy {
+    Latest,
+    Alphabetic
 }
 
 #[derive(PartialEq, Copy, Clone)]
