@@ -1,5 +1,5 @@
 
-use crate::enums::{ImageFormat, OrderBy};
+use crate::enums::{ImageFormat, OrderBy, TakeFrom};
 use crate::files::ImageFiles;
 use crate::image_set::ImageSet;
 use crate::options::Opt;
@@ -121,7 +121,9 @@ pub fn test_output_dimensions() {
         clear_result.is_ok(),
         "{}", clear_result.err().unwrap_or(String::new()));
 
-    // Stitch first 3 files
+    // Stitch first 3 files horizontally
+    // Trivial case of 3 identically-sized images of 1080 x 2280 each
+    // Expect output width 1080 x 3 and height 1080
     let options = Opt {
         number_of_files: Some(3), horizontal: true, order: Some(OrderBy::Alphabetic),
         ..Opt::default() };
@@ -134,6 +136,41 @@ pub fn test_output_dimensions() {
     // Assert dimensions
     assert_eq!(process_result.width(), 3240);
     assert_eq!(process_result.height(), 2280);
+
+    // Stitch last 3 files horizontally in reverse order
+    // One image of 1080 x 1080, then two of 1080 x 2280 which must scale down to line up
+    // Expect images scaled down to be 511 wide (1080 x 1080 / 2280 = 511.5789 which we round
+    // down) hence overall output width of 2 x 511 + 1080 = 2102
+    let options = Opt {
+        number_of_files: Some(3), horizontal: true, order: Some(OrderBy::Alphabetic),
+        take_from: Some(TakeFrom::End), ..Opt::default() };
+    let image_files = ImageFiles::
+        from_directory(vec!("images", "testing", "test_output_dimensions")).unwrap()
+        .sort_and_truncate_by(&options).unwrap()
+        .into_image_contents().unwrap();
+    let process_result = ImageSet::new(image_files, &options).stitch().unwrap();
+
+    // Assert dimensions
+    assert_eq!(process_result.width(), 2102);
+    assert_eq!(process_result.height(), 1080);
+
+    // Stitch all 4 files in a grid
+    // Main axis will default to horizontal, so images go across first row then across a second,
+    // hence scaled-down images give overall width of 511 + 1080 (from bottom row) and height of
+    // 2 x 1080
+    // NOTE these images could be stitched together in a smarter way!
+    let options = Opt {
+        number_of_files: Some(4), order: Some(OrderBy::Alphabetic),
+        ..Opt::default() };
+    let image_files = ImageFiles::
+        from_directory(vec!("images", "testing", "test_output_dimensions")).unwrap()
+        .sort_and_truncate_by(&options).unwrap()
+        .into_image_contents().unwrap();
+    let process_result = ImageSet::new(image_files, &options).stitch().unwrap();
+
+    // Assert dimensions
+    assert_eq!(process_result.width(), 1591);
+    assert_eq!(process_result.height(), 2160);
 }
 
 #[test]
