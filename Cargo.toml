@@ -1,21 +1,10 @@
-[package]
-name = "stitchy"
-version = "0.1.4"
-authors = ["Thomas Reichert"]
-edition = "2021"
-license = "MIT"
-description = "Combine multiple image files into a single image"
-repository = "https://github.com/grimace87/Stitchy"
-readme = "README.md"
-keywords = ["image", "join"]
-categories = ["command-line-utilities", "multimedia::images"]
-exclude = [
-    "/images/testing/"
+[workspace]
+members = [
+    "crates/stitchy",
+    "crates/stitchy-core"
 ]
+default-members = ["crates/stitchy"]
 
-[dependencies]
+[workspace.dependencies]
 clap = { version = "4.1.11", default-features = false, features = ["std", "derive"] }
 image = { version = "0.24.5", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
-serde = { version = "1.0.155", features = ["derive"] }
-serde_json = "1.0.94"
-home = "0.5.3"

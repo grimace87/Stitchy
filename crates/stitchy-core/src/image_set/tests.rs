@@ -29,7 +29,7 @@ pub fn test_types() {
 
     // Get files from test directory
     let retrieve_files_result =
-        ImageFiles::from_directory(vec!("images", "testing", "test_types"));
+        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_types"));
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -41,7 +41,7 @@ pub fn test_types() {
     };
     let image_files = retrieved_files
         .sort_and_truncate_by(&options).unwrap()
-        .into_image_contents().unwrap();
+        .into_image_contents(false).unwrap();
     let process_result = ImageSet::new(image_files, &options)
         .stitch();
     assert!(
@@ -60,7 +60,7 @@ fn mixin_quality_ignored_for_png_override() {
 
     // Get files from test directory
     let retrieve_files_result =
-        ImageFiles::from_directory(vec!("images", "testing", "test_types"));
+        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_types"));
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -72,7 +72,7 @@ fn mixin_quality_ignored_for_png_override() {
         .mix_in(&loaded_defaults);
     let image_files = retrieved_files
         .sort_and_truncate_by(&options).unwrap()
-        .into_image_contents().unwrap();
+        .into_image_contents(false).unwrap();
     let process_result = ImageSet::new(image_files, &options)
         .stitch();
     assert!(
@@ -91,7 +91,7 @@ pub fn test_unusual_inputs() {
 
     // Get files from test directory
     let retrieve_files_result =
-        ImageFiles::from_directory(vec!("images", "testing", "test_unusual_inputs"));
+        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_unusual_inputs"));
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -104,7 +104,7 @@ pub fn test_unusual_inputs() {
     let options = Opt { number_of_files: Some(retrieved_files.file_count()), jpeg: true, ..Opt::default() };
     let image_files = retrieved_files
         .sort_and_truncate_by(&options).unwrap()
-        .into_image_contents().unwrap();
+        .into_image_contents(false).unwrap();
     let process_result = ImageSet::new(image_files, &options)
         .stitch();
     assert!(
@@ -128,9 +128,9 @@ pub fn test_output_dimensions() {
         number_of_files: Some(3), horizontal: true, order: Some(OrderBy::Alphabetic),
         ..Opt::default() };
     let image_files = ImageFiles::
-        from_directory(vec!("images", "testing", "test_output_dimensions")).unwrap()
+        from_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(&options).unwrap()
-        .into_image_contents().unwrap();
+        .into_image_contents(false).unwrap();
     let process_result = ImageSet::new(image_files, &options).stitch().unwrap();
 
     // Assert dimensions
@@ -145,9 +145,9 @@ pub fn test_output_dimensions() {
         number_of_files: Some(3), horizontal: true, order: Some(OrderBy::Alphabetic),
         take_from: Some(TakeFrom::End), ..Opt::default() };
     let image_files = ImageFiles::
-        from_directory(vec!("images", "testing", "test_output_dimensions")).unwrap()
+        from_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(&options).unwrap()
-        .into_image_contents().unwrap();
+        .into_image_contents(false).unwrap();
     let process_result = ImageSet::new(image_files, &options).stitch().unwrap();
 
     // Assert dimensions
@@ -163,9 +163,9 @@ pub fn test_output_dimensions() {
         number_of_files: Some(4), order: Some(OrderBy::Alphabetic),
         ..Opt::default() };
     let image_files = ImageFiles::
-        from_directory(vec!("images", "testing", "test_output_dimensions")).unwrap()
+        from_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(&options).unwrap()
-        .into_image_contents().unwrap();
+        .into_image_contents(false).unwrap();
     let process_result = ImageSet::new(image_files, &options).stitch().unwrap();
 
     // Assert dimensions
@@ -187,7 +187,7 @@ pub fn test_file_counts() {
 
         // Get files from test directory
         let retrieve_files_result = ImageFiles::from_directory(
-            vec!("images", "testing", "test_file_counts"));
+            vec!("..", "..", "images", "testing", "test_file_counts"));
         assert!(
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -196,7 +196,7 @@ pub fn test_file_counts() {
         let options = Opt { number_of_files: Some(i), jpeg: true, ..Opt::default() };
         let image_files = retrieve_files_result.unwrap()
             .sort_and_truncate_by(&options).unwrap()
-            .into_image_contents().unwrap();
+            .into_image_contents(false).unwrap();
         let process_result = ImageSet::new(image_files, &options)
             .stitch();
         assert!(
@@ -219,7 +219,7 @@ pub fn test_output_formats() {
 
         // Get files from test directory
         let retrieve_files_result = ImageFiles::from_directory(
-            vec!("images", "testing", "test_output_formats"));
+            vec!("..", "..", "images", "testing", "test_output_formats"));
         assert!(
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -249,7 +249,7 @@ pub fn test_output_formats() {
         // Process input files
         let image_files = retrieved_files
             .sort_and_truncate_by(&options).unwrap()
-            .into_image_contents().unwrap();
+            .into_image_contents(false).unwrap();
 
         // Perform stitch on inputs
         let process_result = ImageSet::new(image_files, &options)

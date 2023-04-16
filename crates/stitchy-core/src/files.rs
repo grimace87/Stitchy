@@ -1,11 +1,5 @@
 
-#[cfg(test)]
-mod tests;
-
-pub mod util;
-
-use crate::enums::{ImageFormat, OrderBy, TakeFrom};
-use crate::options::Opt;
+use crate::{Opt, ImageFormat, OrderBy, TakeFrom};
 use std::ffi::OsStr;
 use std::time::SystemTime;
 use std::path::{Path, PathBuf};
@@ -191,7 +185,7 @@ impl ImageFiles {
         Ok(self)
     }
 
-    pub fn into_image_contents(self) -> Result<Vec<DynamicImage>, String> {
+    pub fn into_image_contents(self, print_info: bool) -> Result<Vec<DynamicImage>, String> {
         let mut images = Vec::with_capacity(self.file_list.len());
         for file in self.file_list {
 
@@ -199,15 +193,17 @@ impl ImageFiles {
             let image = image::open(path)
                 .map_err(|_| format!("Failed to open: {:?}", path))?;
 
-            // Print some info about source files at this point
-            let w = image.width();
-            let h = image.height();
-            if let Some(file_name) = path.file_name() {
-                println!("Path: {}, w: {}, h: {}, {}",
-                    file_name.to_str().unwrap(), w, h, util::make_size_string(file.size_bytes));
+            if print_info {
+                if let Some(file_name) = path.file_name() {
+                    let w = image.width();
+                    let h = image.height();
+                    println!(
+                        "Path: {}, w: {}, h: {}, {}",
+                        file_name.to_str().unwrap(),
+                        w, h, crate::util::make_size_string(file.size_bytes));
+                }
             }
 
-            // Collect values to return
             images.push(image);
         }
 

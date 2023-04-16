@@ -1,6 +1,5 @@
 
-use super::{Opt, deserialise_as_current};
-use crate::{TakeFrom, OrderBy};
+use crate::{Opt, TakeFrom, OrderBy};
 
 const TEST_JSON: &str = "{ \
         \"horizontal\":true, \
@@ -364,7 +363,7 @@ fn mixin_favours_original_number_of_files() {
 #[test]
 fn bad_json_does_not_deserialise() {
     let test_str = "{\"name\":\"Options\"}";
-    let options = deserialise_as_current(test_str);
+    let options = Opt::deserialise_as_current(test_str);
     assert!(options.is_none());
 }
 
@@ -373,6 +372,6 @@ fn v1_options_does_deserialise() {
     let test_str = "{\"horizontal\":true,\"vertical\":false,\"maxd\":0,\"maxw\":0,\"maxh\":0\
         ,\"reverse\":false,\"jpeg\":false,\"png\":true,\"gif\":false,\"bmp\":false,\"quality\":100\
         ,\"ascalpha\":true,\"descalpha\":false,\"number_of_files\":null}";
-    let options = deserialise_as_current(test_str);
+    let options = Opt::deserialise_as_current(test_str);
     assert!(options.is_some());
 }

@@ -1,4 +1,7 @@
 
+use crate::profiles::{Profile, PROFILE_FILE_NAME};
+use stitchy_core::Opt;
+
 pub fn help() {
     println!("Stitchy v{} by {}", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"));
     println!("Collects a number of image files in the current directory and stitches them into");
@@ -37,7 +40,7 @@ pub fn help() {
     println!("  queried using the --printdefaults flag, and deleted with --cleardefaults.");
     println!(
         "  These are stored in {} in the home directory. The next time you use Stitchy,",
-        crate::profiles::PROFILE_FILE_NAME);
+        PROFILE_FILE_NAME);
     println!("  defaults will be automatically applied, though can be overridden with the same flag.");
     println!("  or another flag which would perform a similar action (such as a different output format.");
     println!("  When setting defaults again, the existing ones are effectively cleared beforehand.");
@@ -50,16 +53,16 @@ pub fn version() {
 }
 
 pub fn defaults() {
-    let load_attempt = crate::profiles::Profile::main().into_string();
+    let load_attempt = Profile::main().into_string();
     if load_attempt.is_none() {
-        println!("Did not find a {} for the current user.", crate::profiles::PROFILE_FILE_NAME);
+        println!("Did not find a {} for the current user.", PROFILE_FILE_NAME);
         return;
     }
 
     let json = load_attempt.unwrap();
-    let serialise_result = crate::options::Opt::deserialise(&json);
+    let serialise_result = Opt::deserialise(&json);
     if serialise_result.is_none() {
-        println!("Failed to parse {} for the current user.", crate::profiles::PROFILE_FILE_NAME);
+        println!("Failed to parse {} for the current user.", PROFILE_FILE_NAME);
         return;
     }
 

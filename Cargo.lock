@@ -305,6 +305,15 @@ dependencies = [
  "clap",
  "home",
  "image",
+ "stitchy-core",
+]
+
+[[package]]
+name = "stitchy-core"
+version = "0.1.4"
+dependencies = [
+ "clap",
+ "image",
  "serde",
  "serde_json",
 ]

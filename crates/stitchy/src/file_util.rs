@@ -1,11 +1,8 @@
 
-use crate::enums::ImageFormat;
+use stitchy_core::ImageFormat;
+use image::{DynamicImage, ImageOutputFormat};
 use std::fs::File;
 use std::path::Path;
-use image::{DynamicImage, ImageOutputFormat};
-
-const BYTES_KIB: u64 = 1024;
-const BYTES_MIB: u64 = 1024 * 1024;
 
 pub(crate) fn write_image_to_file(image: DynamicImage, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
     let mut file_writer = File::create(file_path).unwrap();
@@ -27,24 +24,6 @@ pub(crate) fn size_of_file(file_path: &Path) -> Result<u64, String> {
         .map_err(|_| "File metadata could not be read.".to_owned())?
         .len();
     Ok(length_bytes)
-}
-
-pub(crate) fn make_size_string(length_bytes: u64) -> String {
-    match length_bytes {
-        l if l < BYTES_KIB => format!(
-            "{} bytes", l
-        ),
-        l if l < 10 * BYTES_KIB => format!(
-            "{}.{} KiB", l / BYTES_KIB, (10 * (l % BYTES_KIB)) / BYTES_KIB
-        ),
-        l if l < BYTES_MIB => format!(
-            "{} KiB", l / BYTES_KIB
-        ),
-        l if l < 10 * BYTES_MIB => format!(
-            "{}.{} MiB", l / BYTES_MIB, (10 * (l % BYTES_MIB)) / BYTES_MIB
-        ),
-        l => format!("{} MiB", l / BYTES_MIB)
-    }
 }
 
 pub(crate) fn make_ratio_string(input_size: u64, output_size: u64) -> String {

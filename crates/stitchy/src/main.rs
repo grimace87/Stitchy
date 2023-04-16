@@ -1,19 +1,14 @@
-mod enums;
-mod files;
-mod image_set;
-mod options;
+mod file_util;
 mod print;
 mod profiles;
 
-use enums::{AlignmentMode, ImageFormat, TakeFrom, OrderBy};
-use files::ImageFiles;
-use image_set::ImageSet;
+use stitchy_core::{Opt, ImageSet, ImageFiles, util::make_size_string};
 use clap::Parser;
 
 fn main() {
 
     // Get command line args, check for flags that merely print to the console and exit
-    let mut opt = options::Opt::parse();
+    let mut opt = Opt::parse();
     if opt.help {
         print::help();
         return;
@@ -28,7 +23,7 @@ fn main() {
     }
 
     // Save options if requested, or try to load stored options otherwise
-    let mut previous_options: Option<options::Opt> = None;
+    let mut previous_options: Option<Opt> = None;
     if opt.setdefaults {
         if let Some(error) = opt.check_for_basic_errors(&None) {
             println!("Cannot save settings. {}", error);
@@ -40,7 +35,7 @@ fn main() {
     } else if opt.cleardefaults {
         profiles::Profile::main().delete();
     } else if let Some(json) = profiles::Profile::main().into_string() {
-        if let Some(profile_opt) = options::deserialise_as_current(&json) {
+        if let Some(profile_opt) = Opt::deserialise_as_current(&json) {
             opt = opt.mix_in(&profile_opt);
             previous_options = Some(profile_opt);
         }
@@ -76,7 +71,7 @@ fn main() {
 
 /// Runs Stitchy using the supplied options. The options should have been checked for basic errors
 /// and prepared for use before calling this function.
-fn run_with_options(opt: options::Opt) -> Result<String, String> {
+fn run_with_options(opt: Opt) -> Result<String, String> {
 
     // Determine the list of files to use as input, and from those, determine the output path
     let image_sources = ImageFiles::from_directory(vec!())?
@@ -86,19 +81,19 @@ fn run_with_options(opt: options::Opt) -> Result<String, String> {
     let output_file_path = image_sources.next_available_output(&opt)?;
 
     // Open the image files and process them to make the output image
-    let images = image_sources.into_image_contents()?;
+    let images = image_sources.into_image_contents(true)?;
     let output = ImageSet::new(images, &opt)
         .stitch()?;
 
     // Write the output file, returning a success message or an error message
-    files::util::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
-    let output_string = match files::util::size_of_file(&output_file_path) {
+    file_util::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
+    let output_string = match file_util::size_of_file(&output_file_path) {
         Ok(size_bytes) =>
             format!(
                 "Created file: {:?}, {}, ({})",
                 output_file_path.file_name().unwrap(),
-                files::util::make_size_string(size_bytes),
-                files::util::make_ratio_string(total_source_size, size_bytes)),
+                make_size_string(size_bytes),
+                file_util::make_ratio_string(total_source_size, size_bytes)),
         Err(_) =>
             format!(
                 "Created file: {:?}",

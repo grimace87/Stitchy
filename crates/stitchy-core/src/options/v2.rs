@@ -111,7 +111,7 @@ impl Opt {
         ["JPEG"]
     }
 
-    pub(crate) fn deserialise(json: &str) -> Option<Opt> {
+    pub fn deserialise(json: &str) -> Option<Opt> {
         let result = serde_json::from_str(json);
         match result {
             Ok(o) => o,
@@ -120,6 +120,21 @@ impl Opt {
                 None
             }
         }
+    }
+
+    pub fn deserialise_as_current(json: &str) -> Option<Opt> {
+
+        // Try latest version
+        if let Some(opt) = Opt::deserialise(json) {
+            return Some(opt);
+        }
+
+        // Try v1
+        if let Some(opt) = OptV1::deserialise(json) {
+            return Some(opt.into());
+        }
+
+        None
     }
 
     pub fn check_for_basic_errors(&self, previous_options: &Option<Opt>) -> Option<String> {
