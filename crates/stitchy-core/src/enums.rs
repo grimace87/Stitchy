@@ -2,52 +2,23 @@
 use clap::ValueEnum;
 use serde::{Serialize, Deserialize};
 
-pub enum AspectType {
-    Wide,
-    Portrait,
-    Squarish
-}
-
-impl AspectType {
-    pub fn get_aspect_from_dims(w: u32, h: u32) -> AspectType {
-        let aspect_ratio: f32 = (w as f32) / (h as f32);
-        if aspect_ratio > 1.25f32 {
-            AspectType::Wide
-        } else if aspect_ratio < 0.8f32 {
-            AspectType::Portrait
-        } else {
-            AspectType::Squarish
-        }
-    }
-}
-
-#[derive(PartialEq)]
-pub enum AlignmentMode {
-    Grid,
-    Horizontal,
-    Vertical
-}
-
-#[derive(PartialEq)]
-pub enum Axis {
-    Horizontal,
-    Vertical
-}
-
-#[derive(Eq, PartialEq, Debug, Copy, Clone, ValueEnum, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Default, ValueEnum, Serialize, Deserialize)]
 pub enum TakeFrom {
+    #[default]
     Start,
     End
 }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone, ValueEnum, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Default, ValueEnum, Serialize, Deserialize)]
 pub enum OrderBy {
+    #[default]
     Latest,
     Alphabetic
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone, Default)]
 pub enum ImageFormat {
+    #[default]
     Unspecified,
     Jpeg,
     Png,
@@ -56,6 +27,7 @@ pub enum ImageFormat {
 }
 
 impl ImageFormat {
+
     pub fn allowed_extensions() -> [&'static str; 5] {
         ["jpg", "jpeg", "png", "gif", "bmp"]
     }

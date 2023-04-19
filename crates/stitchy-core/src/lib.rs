@@ -7,9 +7,9 @@ mod options;
 #[cfg(test)]
 mod tests;
 
-pub use enums::{AlignmentMode, AspectType, Axis, ImageFormat, OrderBy, TakeFrom};
+pub use enums::{ImageFormat, OrderBy, TakeFrom};
 pub use files::ImageFiles;
-pub use image_set::ImageSet;
+pub use image_set::{ImageSet, AlignmentMode, Axis};
 pub use options::Opt;
 
 pub mod util {

@@ -3,11 +3,42 @@ extern crate image;
 #[cfg(test)]
 mod tests;
 
-use crate::enums::{AlignmentMode, AspectType, Axis};
-use crate::options::Opt;
-use image::DynamicImage;
-use self::image::GenericImage;
+use crate::Opt;
+use image::{DynamicImage, GenericImage};
 use std::cmp::min;
+
+#[derive(PartialEq, Debug, Copy, Clone, Default)]
+pub enum AlignmentMode {
+    #[default]
+    Grid,
+    Horizontal,
+    Vertical
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub enum Axis {
+    Horizontal,
+    Vertical
+}
+
+enum AspectType {
+    Wide,
+    Portrait,
+    Squarish
+}
+
+impl AspectType {
+    pub fn get_aspect_from_dims(w: u32, h: u32) -> AspectType {
+        let aspect_ratio: f32 = (w as f32) / (h as f32);
+        if aspect_ratio > 1.25f32 {
+            AspectType::Wide
+        } else if aspect_ratio < 0.8f32 {
+            AspectType::Portrait
+        } else {
+            AspectType::Squarish
+        }
+    }
+}
 
 struct ImageRect {
     x: u32,
