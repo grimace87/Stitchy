@@ -1,5 +1,6 @@
 
 use crate::{Opt, TakeFrom, OrderBy};
+use stitchy_core::ImageFiles;
 
 const TEST_JSON: &str = "{ \
         \"horizontal\":true, \
@@ -26,6 +27,20 @@ fn make_test_default() -> Opt {
     Opt {
         number_of_files: Some(1),
         ..Opt::default()
+    }
+}
+
+fn clear_output() -> Result<(), String> {
+    let current_path = std::env::current_dir().unwrap();
+    assert!(current_path.is_dir());
+    let mut test_file = current_path.clone();
+    test_file.push("test.jpg");
+    return if test_file.is_file() {
+        std::fs::remove_file(test_file.as_path()).map_err(
+            |e| format!("Previous test file exists but couldn't be removed: {}", e)
+        )
+    } else {
+        Ok(())
     }
 }
 
@@ -374,4 +389,31 @@ fn v1_options_does_deserialise() {
         ,\"ascalpha\":true,\"descalpha\":false,\"number_of_files\":null}";
     let options = Opt::deserialise_as_current(test_str);
     assert!(options.is_some());
+}
+
+#[test]
+fn mixin_quality_ignored_for_png_override() {
+
+    // Clear existing file
+    let clear_result = clear_output();
+    assert!(
+        clear_result.is_ok(),
+        "{}", clear_result.err().unwrap_or(String::new()));
+
+    // Get files from test directory
+    let retrieve_files_result =
+        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_types"));
+    assert!(
+        retrieve_files_result.is_ok(),
+        "{}", retrieve_files_result.err().unwrap_or(String::new()));
+
+    // Process files, generate output
+    let retrieved_files = retrieve_files_result.unwrap();
+    let loaded_defaults = Opt { number_of_files: Some(1), jpeg: true, quality: 50, ..Opt::default() };
+    let options = Opt { number_of_files: Some(retrieved_files.file_count()), png: true, ..Opt::default() }
+        .mix_in(&loaded_defaults);
+    let post_mix_error = options.check_for_basic_errors(&Some(loaded_defaults));
+    assert!(
+        post_mix_error.is_none(),
+        "{}", post_mix_error.unwrap_or(String::new()));
 }

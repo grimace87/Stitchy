@@ -1,8 +1,8 @@
 
+use crate::options::OptV1;
+use stitchy_core::{ImageFormat, AlignmentMode, TakeFrom, OrderBy};
 use clap::Parser;
 use serde::{Serialize, Deserialize};
-use crate::{ImageFormat, AlignmentMode, TakeFrom, OrderBy};
-use crate::options::OptV1;
 
 pub const DEFAULT_QUALITY: usize = 100;
 

@@ -1,8 +1,13 @@
 mod file_util;
+mod options;
 mod print;
 mod profiles;
 
-use stitchy_core::{Opt, ImageSet, ImageFiles, util::make_size_string};
+#[cfg(test)]
+mod tests;
+
+use options::Opt;
+use stitchy_core::{Stitch, ImageFiles, OrderBy, TakeFrom, util::make_size_string};
 use clap::Parser;
 
 fn main() {
@@ -74,15 +79,26 @@ fn main() {
 fn run_with_options(opt: Opt) -> Result<String, String> {
 
     // Determine the list of files to use as input, and from those, determine the output path
+    let number_of_files = opt.number_of_files.ok_or_else(|| String::from(
+        "Internal error - sorting files before verifying that a number was supplied"))?;
     let image_sources = ImageFiles::from_directory(vec!())?
-        .sort_and_truncate_by(&opt)?;
+        .sort_and_truncate_by(
+            number_of_files,
+            opt.order.unwrap_or(OrderBy::Latest),
+            opt.take_from.unwrap_or(TakeFrom::Start),
+            opt.reverse
+        )?;
     let total_source_size = image_sources.total_size();
-    let output_format = image_sources.determine_output_format(&opt)?;
-    let output_file_path = image_sources.next_available_output(&opt)?;
+    let output_format = file_util::determine_output_format(&image_sources, &opt)?;
+    let output_file_path = file_util::next_available_output(&image_sources, &opt)?;
 
     // Open the image files and process them to make the output image
     let images = image_sources.into_image_contents(true)?;
-    let output = ImageSet::new(images, &opt)
+    let output = Stitch::begin()
+        .images(images)
+        .alignment(opt.get_alignment())
+        .width_limit(opt.maxw as u32)
+        .height_limit(opt.maxh as u32)
         .stitch()?;
 
     // Write the output file, returning a success message or an error message

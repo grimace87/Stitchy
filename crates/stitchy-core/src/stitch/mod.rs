@@ -3,7 +3,6 @@ extern crate image;
 #[cfg(test)]
 mod tests;
 
-use crate::Opt;
 use image::{DynamicImage, GenericImage};
 use std::cmp::min;
 
@@ -47,7 +46,51 @@ struct ImageRect {
     h: u32
 }
 
-pub struct ImageSet {
+#[derive(Default, Debug)]
+pub struct StitchBuilder {
+    pub(crate) images: Vec<DynamicImage>,
+    pub(crate) alignment: AlignmentMode,
+    pub(crate) width_limit: u32,
+    pub(crate) height_limit: u32
+}
+
+impl StitchBuilder {
+
+    pub fn images(self, images: Vec<DynamicImage>) -> StitchBuilder {
+        StitchBuilder {
+            images,
+            ..self
+        }
+    }
+
+    pub fn alignment(self, alignment: AlignmentMode) -> StitchBuilder {
+        StitchBuilder {
+            alignment,
+            ..self
+        }
+    }
+
+    pub fn width_limit(self, width_limit: u32) -> StitchBuilder {
+        StitchBuilder {
+            width_limit,
+            ..self
+        }
+    }
+
+    pub fn height_limit(self, height_limit: u32) -> StitchBuilder {
+        StitchBuilder {
+            height_limit,
+            ..self
+        }
+    }
+
+    pub fn stitch(self) -> Result<DynamicImage, String> {
+        Stitch::new(self.images, self.alignment, self.width_limit, self.height_limit)
+            .stitch()
+    }
+}
+
+pub struct Stitch {
     images: Vec<DynamicImage>,
     alignment: AlignmentMode,
     width_limit: u32,
@@ -61,15 +104,24 @@ pub struct ImageSet {
     largest_main_line_pixels: u32
 }
 
-impl ImageSet {
+impl Stitch {
 
-    pub fn new(images: Vec<DynamicImage>, options: &Opt) -> ImageSet {
+    pub fn begin() -> StitchBuilder {
+        StitchBuilder::default()
+    }
 
-        let mut set = ImageSet {
+    pub(crate) fn new(
+        images: Vec<DynamicImage>,
+        alignment: AlignmentMode,
+        width_limit: u32,
+        height_limit: u32
+    ) -> Stitch {
+
+        let mut set = Stitch {
             images,
-            alignment: options.get_alignment(),
-            width_limit: options.maxw as u32,
-            height_limit: options.maxh as u32,
+            alignment,
+            width_limit,
+            height_limit,
             main_axis: Axis::Horizontal,
             grid_size_main_axis: 1,
             grid_size_cross_axis: 1,

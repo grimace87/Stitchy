@@ -1,15 +1,20 @@
 
+#[cfg(feature = "parser")]
 use clap::ValueEnum;
+
+#[cfg(feature = "parser")]
 use serde::{Serialize, Deserialize};
 
-#[derive(PartialEq, Debug, Copy, Clone, Default, ValueEnum, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Default)]
+#[cfg_attr(feature = "parser", derive(ValueEnum, Serialize, Deserialize))]
 pub enum TakeFrom {
     #[default]
     Start,
     End
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Default, ValueEnum, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Default)]
+#[cfg_attr(feature = "parser", derive(ValueEnum, Serialize, Deserialize))]
 pub enum OrderBy {
     #[default]
     Latest,
