@@ -1,18 +1,11 @@
 
-use crate::{ImageFormat, OrderBy, TakeFrom};
+use crate::{ImageFormat, OrderBy, TakeFrom, files::FileProperties};
 use std::ffi::OsStr;
-use std::time::SystemTime;
 use std::path::{Path, PathBuf};
 use image::DynamicImage;
 
 pub struct ImageFiles {
     file_list: Vec<FileProperties>
-}
-
-pub struct FileProperties {
-    full_path: String,
-    modify_time: SystemTime,
-    size_bytes: u64
 }
 
 impl ImageFiles {

@@ -1,6 +1,6 @@
 use crate::AlignmentMode;
 use crate::enums::{OrderBy, TakeFrom};
-use crate::files::ImageFiles;
+use crate::files::image::ImageFiles;
 use crate::stitch::Stitch;
 
 fn clear_output() -> Result<(), String> {
