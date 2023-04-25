@@ -1,5 +1,5 @@
 
-use crate::{AlignmentMode, Stitch};
+use crate::{AlignmentMode, Stitch, ImageFiles};
 use image::DynamicImage;
 
 #[derive(Default, Debug)]
@@ -17,6 +17,14 @@ impl StitchBuilder {
             images,
             ..self
         }
+    }
+
+    pub fn image_files(self, files: ImageFiles) -> Result<StitchBuilder, String> {
+        let images = files.into_image_contents(false)?;
+        Ok(StitchBuilder {
+            images,
+            ..self
+        })
     }
 
     pub fn alignment(self, alignment: AlignmentMode) -> StitchBuilder {
