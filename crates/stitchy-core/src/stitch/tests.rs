@@ -27,8 +27,9 @@ pub fn test_types() {
         "{}", clear_result.err().unwrap_or(String::new()));
 
     // Get files from test directory
-    let retrieve_files_result =
-        ImageFiles::from_current_directory(vec!("..", "..", "images", "testing", "test_types"));
+    let retrieve_files_result = ImageFiles::builder()
+        .add_current_directory(vec!("..", "..", "images", "testing", "test_types")).unwrap()
+        .build();
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -54,8 +55,9 @@ pub fn test_unusual_inputs() {
         "{}", clear_result.err().unwrap_or(String::new()));
 
     // Get files from test directory
-    let retrieve_files_result =
-        ImageFiles::from_current_directory(vec!("..", "..", "images", "testing", "test_unusual_inputs"));
+    let retrieve_files_result = ImageFiles::builder()
+        .add_current_directory(vec!("..", "..", "images", "testing", "test_unusual_inputs")).unwrap()
+        .build();
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -87,8 +89,9 @@ pub fn test_output_dimensions() {
     // Stitch first 3 files horizontally
     // Trivial case of 3 identically-sized images of 1080 x 2280 each
     // Expect output width 1080 x 3 and height 1080
-    let image_files = ImageFiles::
-        from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+    let image_files = ImageFiles::builder()
+        .add_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+        .build().unwrap()
         .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap()
         .into_image_contents(false).unwrap();
     let process_result = Stitch::builder()
@@ -104,8 +107,9 @@ pub fn test_output_dimensions() {
     // One image of 1080 x 1080, then two of 1080 x 2280 which must scale down to line up
     // Expect images scaled down to be 511 wide (1080 x 1080 / 2280 = 511.5789 which we round
     // down) hence overall output width of 2 x 511 + 1080 = 2102
-    let image_files = ImageFiles::
-        from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+    let image_files = ImageFiles::builder()
+        .add_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+        .build().unwrap()
         .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::End, false).unwrap()
         .into_image_contents(false).unwrap();
     let process_result = Stitch::builder()
@@ -122,8 +126,9 @@ pub fn test_output_dimensions() {
     // hence scaled-down images give overall width of 511 + 1080 (from bottom row) and height of
     // 2 x 1080
     // NOTE these images could be stitched together in a smarter way!
-    let image_files = ImageFiles::
-        from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+    let image_files = ImageFiles::builder()
+        .add_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+        .build().unwrap()
         .sort_and_truncate_by(4, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap()
         .into_image_contents(false).unwrap();
     let process_result = Stitch::builder()
@@ -148,13 +153,14 @@ pub fn test_file_counts() {
             "{}", clear_result.err().unwrap_or(String::new()));
 
         // Get files from test directory
-        let retrieve_files_result = ImageFiles::from_current_directory(
-            vec!("..", "..", "images", "testing", "test_file_counts"));
+        let retrieve_files_result = ImageFiles::builder()
+            .add_current_directory(vec!("..", "..", "images", "testing", "test_file_counts")).unwrap()
+            .build();
         assert!(
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));
 
-        // Process files, generate output
+        // Process files, generate outputiam
         let image_files = retrieve_files_result.unwrap()
             .sort_and_truncate_by(i, OrderBy::Latest, TakeFrom::Start, false).unwrap()
             .into_image_contents(false).unwrap();

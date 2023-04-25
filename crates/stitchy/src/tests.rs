@@ -29,8 +29,9 @@ pub fn test_output_formats() {
             "{}", clear_result.err().unwrap_or(String::new()));
 
         // Get files from test directory
-        let retrieve_files_result = ImageFiles::from_current_directory(
-            vec!("..", "..", "images", "testing", "test_output_formats"));
+        let retrieve_files_result = ImageFiles::builder()
+            .add_current_directory(vec!("..", "..", "images", "testing", "test_output_formats")).unwrap()
+            .build();
         assert!(
             retrieve_files_result.is_ok(),
             "{}", retrieve_files_result.err().unwrap_or(String::new()));

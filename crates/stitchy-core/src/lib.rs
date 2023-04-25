@@ -6,7 +6,7 @@ mod stitch;
 mod tests;
 
 pub use enums::{ImageFormat, OrderBy, TakeFrom};
-pub use files::image::ImageFiles;
+pub use files::{image::ImageFiles, builder::ImageFilesBuilder};
 pub use stitch::{Stitch, AlignmentMode, Axis};
 
 pub mod util {
