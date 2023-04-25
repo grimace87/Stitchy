@@ -1,6 +1,5 @@
 
-use crate::{AlignmentMode, Stitch, ImageFiles};
-use image::DynamicImage;
+use crate::{AlignmentMode, Stitch, ImageFiles, image::DynamicImage};
 
 #[derive(Default, Debug)]
 pub struct StitchBuilder {

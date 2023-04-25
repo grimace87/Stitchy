@@ -1,6 +1,7 @@
 
-use crate::{ImageFormat, OrderBy, TakeFrom, ImageFilesBuilder, files::FileProperties};
-use image::DynamicImage;
+use crate::{
+    ImageFormat, OrderBy, TakeFrom, ImageFilesBuilder, files::FileProperties, image::DynamicImage
+};
 use std::path::Path;
 
 pub struct ImageFiles {

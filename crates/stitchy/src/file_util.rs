@@ -1,7 +1,6 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFormat, ImageFiles};
-use image::{DynamicImage, ImageOutputFormat};
+use stitchy_core::{ImageFormat, ImageFiles, image::{DynamicImage, ImageOutputFormat}};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 

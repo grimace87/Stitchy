@@ -7,4 +7,3 @@ default-members = ["crates/stitchy"]
 
 [workspace.dependencies]
 clap = { version = "4.1.11", default-features = false, features = ["std", "derive"] }
-image = { version = "0.24.5", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }

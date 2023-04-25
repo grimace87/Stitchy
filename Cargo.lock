@@ -304,7 +304,6 @@ version = "0.1.4"
 dependencies = [
  "clap",
  "home",
- "image",
  "serde",
  "serde_json",
  "stitchy-core",

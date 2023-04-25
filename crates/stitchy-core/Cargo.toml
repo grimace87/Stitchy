@@ -15,7 +15,7 @@ exclude = [
 
 [dependencies]
 clap = { workspace = true, optional = true }
-image = { workspace = true }
+image = { version = "0.24.5", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
 serde = { version = "1.0.155", features = ["derive"], optional = true }
 serde_json = { version = "1.0.94", optional = true }
 

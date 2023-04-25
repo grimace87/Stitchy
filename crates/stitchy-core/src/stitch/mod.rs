@@ -3,8 +3,7 @@ pub mod builder;
 #[cfg(test)]
 mod tests;
 
-use crate::StitchBuilder;
-use image::{DynamicImage, GenericImage};
+use crate::{StitchBuilder, image::{DynamicImage, GenericImage}};
 use std::cmp::min;
 
 #[derive(PartialEq, Debug, Copy, Clone, Default)]
