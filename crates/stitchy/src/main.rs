@@ -81,7 +81,7 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
     // Determine the list of files to use as input, and from those, determine the output path
     let number_of_files = opt.number_of_files.ok_or_else(|| String::from(
         "Internal error - sorting files before verifying that a number was supplied"))?;
-    let image_sources = ImageFiles::from_directory(vec!())?
+    let image_sources = ImageFiles::from_current_directory(vec![])?
         .sort_and_truncate_by(
             number_of_files,
             opt.order.unwrap_or(OrderBy::Latest),

@@ -402,7 +402,7 @@ fn mixin_quality_ignored_for_png_override() {
 
     // Get files from test directory
     let retrieve_files_result =
-        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_types"));
+        ImageFiles::from_current_directory(vec!("..", "..", "images", "testing", "test_types"));
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));

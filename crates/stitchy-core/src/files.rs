@@ -2,7 +2,7 @@
 use crate::{ImageFormat, OrderBy, TakeFrom};
 use std::ffi::OsStr;
 use std::time::SystemTime;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use image::DynamicImage;
 
 pub struct ImageFiles {
@@ -17,11 +17,9 @@ pub struct FileProperties {
 
 impl ImageFiles {
 
-    /// Get all image files within a given directory
-    pub fn from_directory(path_components: Vec<&str>) -> Result<ImageFiles, String> {
+    pub fn from_current_directory(path_components: Vec<&str>) -> Result<ImageFiles, String> {
 
         // Get and verify current location
-        let accepted_extensions = ImageFormat::allowed_extensions();
         let current_path = match std::env::current_dir() {
             Ok(dir) => dir,
             Err(_) => return Err(String::from("Could not access current directory"))
@@ -36,10 +34,16 @@ impl ImageFiles {
             use_path.push(component);
         }
 
+        ImageFiles::from_directory(use_path)
+    }
+
+    pub fn from_directory(source_path: PathBuf) -> Result<ImageFiles, String> {
+
         // Scan directory and add all image files found
+        let accepted_extensions = ImageFormat::allowed_extensions();
         let mut image_files: Vec<FileProperties> = vec!();
-        if use_path.is_dir() {
-            for entry in std::fs::read_dir(use_path).unwrap() {
+        if source_path.is_dir() {
+            for entry in std::fs::read_dir(source_path).unwrap() {
 
                 // Check that the path is a file
                 let path = entry.unwrap().path();
@@ -111,7 +115,8 @@ impl ImageFiles {
                 image_files.push(properties);
             }
         } else {
-            return Err(format!("Requested path is not a directory:{}", use_path.to_str().unwrap()));
+            return Err(
+                format!("Requested path is not a directory:{}", source_path.to_str().unwrap()));
         }
         Ok(ImageFiles {
             file_list: image_files

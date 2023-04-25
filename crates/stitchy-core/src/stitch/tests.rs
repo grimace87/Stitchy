@@ -28,7 +28,7 @@ pub fn test_types() {
 
     // Get files from test directory
     let retrieve_files_result =
-        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_types"));
+        ImageFiles::from_current_directory(vec!("..", "..", "images", "testing", "test_types"));
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -55,7 +55,7 @@ pub fn test_unusual_inputs() {
 
     // Get files from test directory
     let retrieve_files_result =
-        ImageFiles::from_directory(vec!("..", "..", "images", "testing", "test_unusual_inputs"));
+        ImageFiles::from_current_directory(vec!("..", "..", "images", "testing", "test_unusual_inputs"));
     assert!(
         retrieve_files_result.is_ok(),
         "{}", retrieve_files_result.err().unwrap_or(String::new()));
@@ -88,7 +88,7 @@ pub fn test_output_dimensions() {
     // Trivial case of 3 identically-sized images of 1080 x 2280 each
     // Expect output width 1080 x 3 and height 1080
     let image_files = ImageFiles::
-        from_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+        from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap()
         .into_image_contents(false).unwrap();
     let process_result = Stitch::begin()
@@ -105,7 +105,7 @@ pub fn test_output_dimensions() {
     // Expect images scaled down to be 511 wide (1080 x 1080 / 2280 = 511.5789 which we round
     // down) hence overall output width of 2 x 511 + 1080 = 2102
     let image_files = ImageFiles::
-        from_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+        from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::End, false).unwrap()
         .into_image_contents(false).unwrap();
     let process_result = Stitch::begin()
@@ -123,7 +123,7 @@ pub fn test_output_dimensions() {
     // 2 x 1080
     // NOTE these images could be stitched together in a smarter way!
     let image_files = ImageFiles::
-        from_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
+        from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(4, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap()
         .into_image_contents(false).unwrap();
     let process_result = Stitch::begin()
@@ -148,7 +148,7 @@ pub fn test_file_counts() {
             "{}", clear_result.err().unwrap_or(String::new()));
 
         // Get files from test directory
-        let retrieve_files_result = ImageFiles::from_directory(
+        let retrieve_files_result = ImageFiles::from_current_directory(
             vec!("..", "..", "images", "testing", "test_file_counts"));
         assert!(
             retrieve_files_result.is_ok(),
