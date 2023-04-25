@@ -36,7 +36,7 @@ pub fn test_types() {
     // Process files, generate output
     let image_files = retrieve_files_result.unwrap()
         .into_image_contents(false).unwrap();
-    let process_result = Stitch::begin()
+    let process_result = Stitch::builder()
         .images(image_files)
         .stitch();
     assert!(
@@ -67,7 +67,7 @@ pub fn test_unusual_inputs() {
     // Process files, generate output
     let image_files = retrieved_files
         .into_image_contents(false).unwrap();
-    let process_result = Stitch::begin()
+    let process_result = Stitch::builder()
         .images(image_files)
         .stitch();
     assert!(
@@ -91,7 +91,7 @@ pub fn test_output_dimensions() {
         from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap()
         .into_image_contents(false).unwrap();
-    let process_result = Stitch::begin()
+    let process_result = Stitch::builder()
         .images(image_files)
         .alignment(AlignmentMode::Horizontal)
         .stitch().unwrap();
@@ -108,7 +108,7 @@ pub fn test_output_dimensions() {
         from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::End, false).unwrap()
         .into_image_contents(false).unwrap();
-    let process_result = Stitch::begin()
+    let process_result = Stitch::builder()
         .images(image_files)
         .alignment(AlignmentMode::Horizontal)
         .stitch().unwrap();
@@ -126,7 +126,7 @@ pub fn test_output_dimensions() {
         from_current_directory(vec!("..", "..", "images", "testing", "test_output_dimensions")).unwrap()
         .sort_and_truncate_by(4, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap()
         .into_image_contents(false).unwrap();
-    let process_result = Stitch::begin()
+    let process_result = Stitch::builder()
         .images(image_files)
         .stitch().unwrap();
 
@@ -158,7 +158,7 @@ pub fn test_file_counts() {
         let image_files = retrieve_files_result.unwrap()
             .sort_and_truncate_by(i, OrderBy::Latest, TakeFrom::Start, false).unwrap()
             .into_image_contents(false).unwrap();
-        let process_result = Stitch::begin()
+        let process_result = Stitch::builder()
             .images(image_files)
             .stitch();
         assert!(

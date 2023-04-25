@@ -106,7 +106,7 @@ pub struct Stitch {
 
 impl Stitch {
 
-    pub fn begin() -> StitchBuilder {
+    pub fn builder() -> StitchBuilder {
         StitchBuilder::default()
     }
 

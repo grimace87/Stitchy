@@ -94,7 +94,7 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
 
     // Open the image files and process them to make the output image
     let images = image_sources.into_image_contents(true)?;
-    let output = Stitch::begin()
+    let output = Stitch::builder()
         .images(images)
         .alignment(opt.get_alignment())
         .width_limit(opt.maxw as u32)

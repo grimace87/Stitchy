@@ -69,7 +69,7 @@ pub fn test_output_formats() {
         let image_files = sources.into_image_contents(false).unwrap();
 
         // Perform stitch on inputs
-        let stitch = Stitch::begin()
+        let stitch = Stitch::builder()
             .images(image_files)
             .stitch().unwrap();
         let process_result = crate::file_util::write_image_to_file(stitch, &output_path, format, 100);
