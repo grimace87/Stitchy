@@ -1,23 +1,16 @@
 
 use crate::{ImageFiles, ImageFormat, files::FileProperties};
 use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Builder for the [`ImageFiles`] struct.
 ///
 /// Assemble a list of image files, chosen individually or a directory at a time.
 ///
 /// See documentation for [`ImageFiles`] for more information.
+#[derive(Default)]
 pub struct ImageFilesBuilder {
     file_list: Vec<PathBuf>
-}
-
-impl Default for ImageFilesBuilder {
-    fn default() -> Self {
-        Self {
-            file_list: vec![]
-        }
-    }
 }
 
 impl ImageFilesBuilder {
@@ -144,7 +137,7 @@ impl ImageFilesBuilder {
     }
 
     /// Checks if a file has an extension matching any in a given set
-    fn extension_in_list(file_path: &PathBuf, accepted_extensions: &[&str; 5]) -> bool {
+    fn extension_in_list(file_path: &Path, accepted_extensions: &[&str; 5]) -> bool {
         let extension = file_path.extension()
             .unwrap_or(OsStr::new(""))
             .to_ascii_lowercase();
