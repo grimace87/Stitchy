@@ -1,6 +1,6 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFormat, ImageFiles, image::{DynamicImage, ImageOutputFormat}};
+use stitchy_core::{ImageFormat, ImageFiles, image::DynamicImage};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
@@ -57,13 +57,7 @@ pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<Path
 
 pub fn write_image_to_file(image: DynamicImage, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
     let mut file_writer = File::create(file_path).unwrap();
-    let format = match format {
-        ImageFormat::Jpeg => ImageOutputFormat::Jpeg(quality as u8),
-        ImageFormat::Png => ImageOutputFormat::Png,
-        ImageFormat::Gif => ImageOutputFormat::Gif,
-        ImageFormat::Bmp => ImageOutputFormat::Bmp,
-        ImageFormat::Unspecified => ImageOutputFormat::Jpeg(100u8) // Should not reach this point
-    };
+    let format = format.to_image_output_format(quality);
     match image.write_to(&mut file_writer, format) {
         Ok(()) => Ok(()),
         Err(error) => Err(format!("Failed to generate output file - {}", error))

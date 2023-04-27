@@ -2,6 +2,10 @@
 const BYTES_KIB: u64 = 1024;
 const BYTES_MIB: u64 = 1024 * 1024;
 
+/// Return a string representing the size of the file, in bytes, KiB, or MiB
+///
+/// Used in [crate::ImageFileSet::into_image_contents] if outputting information about the input
+/// files, and shared with the CLI crate to print output file size in the same format.
 pub fn make_size_string(length_bytes: u64) -> String {
     match length_bytes {
         l if l < BYTES_KIB => format!(

@@ -4,12 +4,38 @@ use crate::{
 };
 use std::path::Path;
 
+/// A set of image files, storing some file properties internally.
+///
+/// The files can be sorted and truncated according to the options supplied, and then converted
+/// into a vector of [`DynamicImage`] structs which will contain the actual image data for all
+/// files.
+///
+/// Construct using the [`ImageFilesBuilder`] struct.
+///
+/// # Examples
+///
+/// ```
+/// use stitchy_core::{ImageFiles, OrderBy, TakeFrom};
+///
+/// // Locate all image files in the current directory, storing metadata for each file
+/// let image_file_paths = ImageFiles::builder()
+///     .add_directory(std::env::current_dir().unwrap()).unwrap()
+///     .build().unwrap();
+///
+/// // Pick a subset of those files and load the image data from them
+/// let images = image_file_paths
+///     .sort_and_truncate_by(3, OrderBy::Latest, TakeFrom::Start, false).unwrap()
+///     .into_image_contents(/* print_info */ true).unwrap();
+///
+/// // Can perform stitching of the image data at this point
+/// ```
 pub struct ImageFiles {
     file_list: Vec<FileProperties>
 }
 
 impl ImageFiles {
 
+    /// Create a new [ImageFilesBuilder] for selecting files
     pub fn builder() -> ImageFilesBuilder {
         ImageFilesBuilder::default()
     }
@@ -18,11 +44,12 @@ impl ImageFiles {
         Self { file_list }
     }
 
-    /// Get number of files in the current working set
+    /// Get the number of files in the current working set
     pub fn file_count(&self) -> usize {
         self.file_list.len()
     }
 
+    /// Get the total size, in bytes, of all files in the set
     pub fn total_size(&self) -> u64 {
         let mut total = 0;
         for file in self.file_list.iter() {
@@ -84,6 +111,8 @@ impl ImageFiles {
         Ok(self)
     }
 
+    /// Load the image data from the files in the set, and return a vector of [`DynamicImage`].
+    /// The result can then be stitched together.
     pub fn into_image_contents(self, print_info: bool) -> Result<Vec<DynamicImage>, String> {
         let mut images = Vec::with_capacity(self.file_list.len());
         for file in self.file_list {
@@ -109,6 +138,11 @@ impl ImageFiles {
         Ok(images)
     }
 
+    /// Suggest an output format to use for saving the stitch result after loading and stitching
+    /// the image files in this set.
+    ///
+    /// If all files use the same format, this will be the suggestion. If the formats vary, or
+    /// if there are no files in the set, then [`ImageFormat::Unspecified`] will be returned.
     pub fn common_format_in_sources(&self) -> ImageFormat {
         if self.file_list.is_empty() {
             return ImageFormat::Unspecified;

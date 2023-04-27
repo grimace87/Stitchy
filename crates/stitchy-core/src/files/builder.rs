@@ -3,6 +3,11 @@ use crate::{ImageFiles, ImageFormat, files::FileProperties};
 use std::ffi::OsStr;
 use std::path::PathBuf;
 
+/// Builder for the [`ImageFiles`] struct.
+///
+/// Assemble a list of image files, chosen individually or a directory at a time.
+///
+/// See documentation for [`ImageFiles`] for more information.
 pub struct ImageFilesBuilder {
     file_list: Vec<PathBuf>
 }
@@ -17,6 +22,9 @@ impl Default for ImageFilesBuilder {
 
 impl ImageFilesBuilder {
 
+    /// Return an [ImageFiles] containing the metadata of the set of source files.
+    ///
+    /// If there was an error reading the metadata of any file, it will be returned as a String.
     pub fn build(self) -> Result<ImageFiles, String> {
         let mut image_files: Vec<FileProperties> = vec!();
         for path in self.file_list.into_iter() {
@@ -51,6 +59,7 @@ impl ImageFilesBuilder {
         Ok(ImageFiles::new(image_files))
     }
 
+    /// Add a single file to the working set, given a PathBuf with its absolute path.
     pub fn add_file(mut self, path: PathBuf) -> Result<Self, String> {
         let accepted_extensions = ImageFormat::allowed_extensions();
         if !Self::extension_in_list(&path, &accepted_extensions) {
@@ -63,6 +72,8 @@ impl ImageFilesBuilder {
         Ok(self)
     }
 
+    /// Add to the working set all files within the current directory that have known image file
+    /// extensions.
     pub fn add_current_directory(self, additional_components: Vec<&str>) -> Result<Self, String> {
 
         // Get and verify current location
@@ -83,6 +94,8 @@ impl ImageFilesBuilder {
         self.add_directory(use_path)
     }
 
+    /// Add to the working set all files within the given directory that have known image file
+    /// extensions. The supplied PathBuf must be the absolute path to a directory.
     pub fn add_directory(mut self, source_path: PathBuf) -> Result<Self, String> {
 
         // Scan directory and add all image files found
@@ -130,7 +143,7 @@ impl ImageFilesBuilder {
         Ok(self)
     }
 
-    // Returns false if something fails
+    /// Checks if a file has an extension matching any in a given set
     fn extension_in_list(file_path: &PathBuf, accepted_extensions: &[&str; 5]) -> bool {
         let extension = file_path.extension()
             .unwrap_or(OsStr::new(""))

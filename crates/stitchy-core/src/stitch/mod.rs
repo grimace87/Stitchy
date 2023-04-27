@@ -6,6 +6,17 @@ mod tests;
 use crate::{StitchBuilder, image::{DynamicImage, GenericImage}};
 use std::cmp::min;
 
+/// Layout configuration for the stitched result.
+///
+/// Options include:
+/// - Grid, where a guess is made at a sensible number of rows and columns
+/// - Horizontal, where all images are placed in a single row
+/// - Vertical, where all images are placed in a single column
+///
+/// The grid layout is based on a guess of which should be the main axis (either horizontal or
+/// vertical), then guessing the main axis and cross axis dimensions, and then stitching images
+/// along the main axis until full and moving along the cross axis. Currently, this cannot be
+/// controlled.
 #[derive(PartialEq, Debug, Copy, Clone, Default)]
 pub enum AlignmentMode {
     #[default]
@@ -14,12 +25,14 @@ pub enum AlignmentMode {
     Vertical
 }
 
+/// Direction of either the main or cross axis
 #[derive(PartialEq, Debug, Copy, Clone)]
-pub enum Axis {
+pub(crate) enum Axis {
     Horizontal,
     Vertical
 }
 
+/// An approximate aspect ratio class
 enum AspectType {
     Wide,
     Portrait,
@@ -39,6 +52,7 @@ impl AspectType {
     }
 }
 
+/// Size and position of an area within an image
 struct ImageRect {
     x: u32,
     y: u32,
@@ -46,6 +60,8 @@ struct ImageRect {
     h: u32
 }
 
+/// The full set of inputs for a stitch operation, including the source images and the layout
+/// that the output will take. Use the [StitchBuilder] for the entire stitching process.
 pub struct Stitch {
     images: Vec<DynamicImage>,
     alignment: AlignmentMode,
