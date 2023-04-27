@@ -5,7 +5,7 @@
 - Fix black border sometimes present even in relatively simple scenarios
 - Manual control over grid layout
 
-### 0.1.0 (Unreleased)
+### 0.1.0
 
 - Created this crate from parts of the original `stitchy` crate (version 0.1.4), allowing use outside the CLI program
 - Cleaned up public API, deriving common traits for types, adding documentation
