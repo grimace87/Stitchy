@@ -6,16 +6,7 @@ use crate::{AlignmentMode, Stitch, ImageFiles, image::DynamicImage};
 /// Performs all of the configuration for the stitch, and triggers generation of the output image.
 /// Source images are provided using the [ImageFiles] struct, which has its own builder.
 ///
-/// # Examples
-///
-/// ```
-/// use stitchy_core::{Stitch, AlignmentMode};
-/// let stitch = Stitch::builder()
-///     .image_files(images).unwrap()
-///     .alignment(AlignmentMode::Horizontal)
-///     .width_limit(1000)
-///     .stitch().unwrap();
-/// ```
+/// See crate-level documentation for examples.
 #[derive(Default, Debug)]
 pub struct StitchBuilder {
     pub(crate) images: Vec<DynamicImage>,

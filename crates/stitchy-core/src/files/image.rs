@@ -12,23 +12,7 @@ use std::path::Path;
 ///
 /// Construct using the [`ImageFilesBuilder`] struct.
 ///
-/// # Examples
-///
-/// ```
-/// use stitchy_core::{ImageFiles, OrderBy, TakeFrom};
-///
-/// // Locate all image files in the current directory, storing metadata for each file
-/// let image_file_paths = ImageFiles::builder()
-///     .add_directory(std::env::current_dir().unwrap()).unwrap()
-///     .build().unwrap();
-///
-/// // Pick a subset of those files and load the image data from them
-/// let images = image_file_paths
-///     .sort_and_truncate_by(3, OrderBy::Latest, TakeFrom::Start, false).unwrap()
-///     .into_image_contents(/* print_info */ true).unwrap();
-///
-/// // Can perform stitching of the image data at this point
-/// ```
+/// See crate-level documentation for examples.
 pub struct ImageFiles {
     file_list: Vec<FileProperties>
 }

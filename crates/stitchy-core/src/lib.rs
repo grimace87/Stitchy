@@ -15,19 +15,22 @@
 //! # Examples
 //!
 //! ```
-//! // Select image files in current directory
-//! use stitchy_core::ImageFiles;
+//! // Select image files in current directory, take first 3 by alphabetic order on file name
+//! use stitchy_core::{ImageFiles, OrderBy, TakeFrom};
 //! let image_files = ImageFiles::builder()
-//!     .add_current_directory(vec![]).unwrap()
-//!     .build().unwrap();
+//!     .add_current_directory(vec!["..", "..", "images", "demo"]).unwrap()
+//!     .build().unwrap()
+//!     .sort_and_truncate_by(3, OrderBy::Alphabetic, TakeFrom::Start, false).unwrap();
 //!
 //! // Stitch images in a horizontal line, restricting the width to 1000 pixels
 //! use stitchy_core::{Stitch, AlignmentMode};
-//! let image = Stitch::builder()
-//!     .image_files(image_files)
+//! let stitch = Stitch::builder()
+//!     .image_files(image_files).unwrap()
 //!     .width_limit(1000)
 //!     .alignment(AlignmentMode::Horizontal)
-//!     .stitch().unwrap();
+//!     .stitch();
+//!
+//! assert!(stitch.is_ok());
 //! ```
 
 mod enums;
@@ -44,7 +47,7 @@ pub use enums::{ImageFormat, OrderBy, TakeFrom};
 pub use files::{image::ImageFiles, builder::ImageFilesBuilder};
 
 /// Type used for running the image stitching process
-pub use stitch::{Stitch, AlignmentMode, Axis, builder::StitchBuilder};
+pub use stitch::{Stitch, AlignmentMode, builder::StitchBuilder};
 
 /// File utilities, used by the CLI crate
 pub mod util {
