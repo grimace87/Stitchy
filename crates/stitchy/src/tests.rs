@@ -1,6 +1,6 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFiles, ImageFormat, OrderBy, TakeFrom, Stitch};
+use stitchy_core::{ImageFiles, image::ImageFormat, OrderBy, TakeFrom, Stitch};
 
 fn clear_output() -> Result<(), String> {
     let current_path = std::env::current_dir().unwrap();
@@ -20,7 +20,7 @@ fn clear_output() -> Result<(), String> {
 pub fn test_output_formats() {
 
     // Per allowed extension, infer the type enum and generate an output
-    for &extension in ImageFormat::allowed_extensions().iter() {
+    for &extension in ImageFiles::allowed_extensions().iter() {
 
         // Clear existing file
         let clear_result = clear_output();
@@ -39,21 +39,22 @@ pub fn test_output_formats() {
         // Build options set matching the image format under test
         let retrieved_files = retrieve_files_result.unwrap();
         let all_files_count = retrieved_files.file_count();
-        let format = ImageFormat::infer_format(extension);
+        let format = ImageFiles::infer_format(extension);
         let options = match format {
-            ImageFormat::Jpeg => Opt {
+            Some(ImageFormat::Jpeg) => Opt {
                 number_of_files: Some(all_files_count), jpeg: true, ..Opt::default()
             },
-            ImageFormat::Png => Opt {
+            Some(ImageFormat::Png) => Opt {
                 number_of_files: Some(all_files_count), png: true, ..Opt::default()
             },
-            ImageFormat::Bmp => Opt {
+            Some(ImageFormat::Bmp) => Opt {
                 number_of_files: Some(all_files_count), bmp: true, ..Opt::default()
             },
-            ImageFormat::Gif => Opt {
+            Some(ImageFormat::Gif) => Opt {
                 number_of_files: Some(all_files_count), gif: true, ..Opt::default()
             },
-            ImageFormat::Unspecified => Opt {
+            Some(inner_format) => { panic!("Unknown format: {:?}", inner_format) },
+            None => Opt {
                 number_of_files: Some(all_files_count), ..Opt::default()
             }
         };

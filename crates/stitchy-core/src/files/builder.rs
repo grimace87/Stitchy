@@ -1,5 +1,5 @@
 
-use crate::{ImageFiles, ImageFormat, files::FileProperties};
+use crate::{ImageFiles, files::FileProperties};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
@@ -54,7 +54,7 @@ impl ImageFilesBuilder {
 
     /// Add a single file to the working set, given a PathBuf with its absolute path.
     pub fn add_file(mut self, path: PathBuf) -> Result<Self, String> {
-        let accepted_extensions = ImageFormat::allowed_extensions();
+        let accepted_extensions = ImageFiles::allowed_extensions();
         if !Self::extension_in_list(&path, &accepted_extensions) {
             return Err(format!("File not recognised as image file: {:?}", path));
         }
@@ -92,7 +92,7 @@ impl ImageFilesBuilder {
     pub fn add_directory(mut self, source_path: PathBuf) -> Result<Self, String> {
 
         // Scan directory and add all image files found
-        let accepted_extensions = ImageFormat::allowed_extensions();
+        let accepted_extensions = ImageFiles::allowed_extensions();
         let mut image_files: Vec<PathBuf> = vec!();
         if source_path.is_dir() {
             for entry in std::fs::read_dir(source_path).unwrap() {

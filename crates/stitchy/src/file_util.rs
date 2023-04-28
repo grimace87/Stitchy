@@ -1,13 +1,14 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFormat, ImageFiles, image::DynamicImage};
+use stitchy_core::{ImageFiles, image::{ImageFormat, ImageOutputFormat, DynamicImage}};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
 pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<PathBuf, String> {
 
-    let target_extension = determine_output_format(sources, options)?
-        .get_main_extension();
+    let target_extension = ImageFiles
+        ::get_main_extension(determine_output_format(sources, options)?)
+        .unwrap_or("jpg");
 
     // Get current path, check if the default file name exists, if not return it
     let mut current_path: PathBuf = match std::env::current_dir() {
@@ -15,7 +16,7 @@ pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<Path
         Err(_) => return Err(String::from("Could not access current directory"))
     };
     let mut un_numbered_file_exists = false;
-    for &extension in ImageFormat::allowed_extensions().iter() {
+    for &extension in ImageFiles::allowed_extensions().iter() {
         current_path.push(format!("stitch.{}", extension));
         if current_path.is_file() {
             un_numbered_file_exists = true;
@@ -34,7 +35,7 @@ pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<Path
     let mut i = 1usize;
     while i < 1000 {
         let mut numbered_file_exists = false;
-        for &extension in ImageFormat::allowed_extensions().iter() {
+        for &extension in ImageFiles::allowed_extensions().iter() {
             let file_name: String = format!("stitch_{}.{}", i, extension);
             current_path.push(file_name);
             if current_path.is_file() {
@@ -55,9 +56,14 @@ pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<Path
     Err(String::from("Did not find a usable file name - if you have 1000 stitches, please move or delete some."))
 }
 
-pub fn write_image_to_file(image: DynamicImage, file_path: &Path, format: ImageFormat, quality: usize) -> Result<(), String> {
+pub fn write_image_to_file(
+    image: DynamicImage,
+    file_path: &Path,
+    format: Option<ImageFormat>,
+    quality: usize
+) -> Result<(), String> {
     let mut file_writer = File::create(file_path).unwrap();
-    let format = format.to_image_output_format(quality);
+    let format = make_image_output_format(format, quality);
     match image.write_to(&mut file_writer, format) {
         Ok(()) => Ok(()),
         Err(error) => Err(format!("Failed to generate output file - {}", error))
@@ -81,20 +87,37 @@ pub fn make_ratio_string(input_size: u64, output_size: u64) -> String {
 
 pub fn determine_output_format(sources: &ImageFiles, options: &Opt) -> Result<ImageFormat, String> {
 
-    let mut image_format: ImageFormat = options.get_requested_image_format();
+    let requested_format: Option<ImageFormat> = options.get_requested_image_format();
 
     // Check if no format was specified, but all source images are the same
-    if image_format == ImageFormat::Unspecified {
-        image_format = sources.common_format_in_sources();
-        if image_format == ImageFormat::Unspecified {
-            image_format = ImageFormat::Jpeg;
-        }
-        if image_format != ImageFormat::Jpeg && options.quality != 100 {
-            return Err(format!(
-                "Output file with extension .{} cannot use a quality setting.",
-                image_format.get_main_extension()));
-        }
-    }
+    let image_format = match requested_format {
+        None => {
+            let common_format = sources.common_format_in_sources();
+            match common_format {
+                None => ImageFormat::Jpeg,
+                Some(format) => {
+                    if format != ImageFormat::Jpeg && options.quality != 100 {
+                        return Err(format!(
+                            "Output format {:?} cannot use a quality setting.",
+                            format));
+                    }
+                    format
+                }
+            }
+        },
+        Some(format) => format
+    };
 
     Ok(image_format)
+}
+
+fn make_image_output_format(format: Option<ImageFormat>, quality: usize) -> ImageOutputFormat {
+    match format {
+        Some(ImageFormat::Jpeg) => ImageOutputFormat::Jpeg(quality as u8),
+        Some(ImageFormat::Png) => ImageOutputFormat::Png,
+        Some(ImageFormat::Gif) => ImageOutputFormat::Gif,
+        Some(ImageFormat::Bmp) => ImageOutputFormat::Bmp,
+        Some(other_format) => { panic!("Internal error: found format {:?}", other_format) },
+        None => ImageOutputFormat::Jpeg(100u8)
+    }
 }

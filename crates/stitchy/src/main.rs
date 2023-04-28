@@ -104,7 +104,7 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
         .stitch()?;
 
     // Write the output file, returning a success message or an error message
-    file_util::write_image_to_file(output, &output_file_path, output_format, opt.quality)?;
+    file_util::write_image_to_file(output, &output_file_path, Some(output_format), opt.quality)?;
     let output_string = match file_util::size_of_file(&output_file_path) {
         Ok(size_bytes) =>
             format!(

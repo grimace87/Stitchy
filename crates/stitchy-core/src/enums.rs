@@ -1,6 +1,4 @@
 
-use crate::image::ImageOutputFormat;
-
 #[cfg(feature = "parser")]
 use clap::ValueEnum;
 
@@ -35,69 +33,4 @@ pub enum OrderBy {
     #[default]
     Latest,
     Alphabetic
-}
-
-/// Enum of supported image formats.
-/// Includes conversion function to [image::ImageOutputFormat], though this requires the
-/// quality setting that will only be used for JPEG images.
-#[derive(PartialEq, Debug, Copy, Clone, Default)]
-pub enum ImageFormat {
-    #[default]
-    Unspecified,
-    Jpeg,
-    Png,
-    Gif,
-    Bmp
-}
-
-impl ImageFormat {
-
-    pub fn allowed_extensions() -> [&'static str; 5] {
-        ["jpg", "jpeg", "png", "gif", "bmp"]
-    }
-
-    pub fn infer_format(file_name: &str) -> ImageFormat {
-        match file_name.rfind('.') {
-            Some(pos) => {
-                let extension = &file_name[pos..file_name.len()];
-                for &(ext, fmt) in Self::extension_formats().iter() {
-                    if ext == extension {
-                        return fmt;
-                    }
-                }
-                ImageFormat::Unspecified
-            },
-            None => ImageFormat::Unspecified
-        }
-    }
-
-    pub fn get_main_extension(&self) -> &'static str {
-        match self {
-            ImageFormat::Jpeg => "jpg",
-            ImageFormat::Png => "png",
-            ImageFormat::Gif => "gif",
-            ImageFormat::Bmp => "bmp",
-            ImageFormat::Unspecified => "jpg"
-        }
-    }
-
-    pub fn to_image_output_format(self, quality: usize) -> ImageOutputFormat {
-        match self {
-            ImageFormat::Jpeg => ImageOutputFormat::Jpeg(quality as u8),
-            ImageFormat::Png => ImageOutputFormat::Png,
-            ImageFormat::Gif => ImageOutputFormat::Gif,
-            ImageFormat::Bmp => ImageOutputFormat::Bmp,
-            ImageFormat::Unspecified => ImageOutputFormat::Jpeg(100u8)
-        }
-    }
-
-    fn extension_formats() -> [(&'static str, ImageFormat); 5] {
-        [
-            (".jpg", ImageFormat::Jpeg),
-            (".jpeg", ImageFormat::Jpeg),
-            (".png", ImageFormat::Png),
-            (".gif", ImageFormat::Gif),
-            (".bmp", ImageFormat::Bmp)
-        ]
-    }
 }

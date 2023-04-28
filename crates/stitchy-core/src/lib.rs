@@ -41,7 +41,7 @@ mod stitch;
 mod tests;
 
 /// Enums used for configuring the image stitching process
-pub use enums::{ImageFormat, OrderBy, TakeFrom};
+pub use enums::{OrderBy, TakeFrom};
 
 /// Types used for loading files and passing them into the image stitching process
 pub use files::{image::ImageFiles, builder::ImageFilesBuilder};
@@ -56,5 +56,5 @@ pub mod util {
 
 /// Re-exports from the [image](https://crates.io/crates/image) crate
 pub mod image {
-    pub use image::{DynamicImage, ImageOutputFormat, GenericImage};
+    pub use image::{DynamicImage, GenericImage, ImageFormat, ImageOutputFormat};
 }

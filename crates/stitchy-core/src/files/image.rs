@@ -1,7 +1,8 @@
 
 use crate::{
-    ImageFormat, OrderBy, TakeFrom, ImageFilesBuilder, files::FileProperties, image::DynamicImage
+    OrderBy, TakeFrom, ImageFilesBuilder, files::FileProperties, image::DynamicImage
 };
+use image::ImageFormat;
 use std::path::Path;
 
 /// A set of image files, storing some file properties internally.
@@ -26,6 +27,56 @@ impl ImageFiles {
 
     pub(crate) fn new(file_list: Vec<FileProperties>) -> Self {
         Self { file_list }
+    }
+
+    /// Return an array of the accepted file extensions.
+    ///
+    /// These match image formats that can be processed by this crate. Adding individual files
+    /// with other extensions will fail, and files with other extensions will be ignored if adding
+    /// whole directories.
+    pub fn allowed_extensions() -> [&'static str; 5] {
+        ["jpg", "jpeg", "png", "gif", "bmp"]
+    }
+
+    /// Mappings of known file extensions to their image format
+    fn extension_formats() -> [(&'static str, ImageFormat); 5] {
+        [
+            (".jpg", ImageFormat::Jpeg),
+            (".jpeg", ImageFormat::Jpeg),
+            (".png", ImageFormat::Png),
+            (".gif", ImageFormat::Gif),
+            (".bmp", ImageFormat::Bmp)
+        ]
+    }
+
+    /// Get the "main" extension used by a format.
+    ///
+    /// This is subjective in nature. One thing that is known is that these are all contained in
+    /// the set of usable formats in [ImageFiles::allowed_extensions].
+    pub fn get_main_extension(format: ImageFormat) -> Option<&'static str> {
+        match format {
+            ImageFormat::Jpeg => Some("jpg"),
+            ImageFormat::Png => Some("png"),
+            ImageFormat::Gif => Some("gif"),
+            ImageFormat::Bmp => Some("bmp"),
+            _ => None
+        }
+    }
+
+    /// Infer the format of an image file based on its file extension
+    pub fn infer_format(file_name: &str) -> Option<ImageFormat> {
+        match file_name.rfind('.') {
+            Some(pos) => {
+                let extension = &file_name[pos..file_name.len()];
+                for &(ext, fmt) in Self::extension_formats().iter() {
+                    if ext == extension {
+                        return Some(fmt);
+                    }
+                }
+                None
+            },
+            None => None
+        }
     }
 
     /// Get the number of files in the current working set
@@ -126,18 +177,18 @@ impl ImageFiles {
     /// the image files in this set.
     ///
     /// If all files use the same format, this will be the suggestion. If the formats vary, or
-    /// if there are no files in the set, then [`ImageFormat::Unspecified`] will be returned.
-    pub fn common_format_in_sources(&self) -> ImageFormat {
+    /// if there are no files in the set, then [None] will be returned.
+    pub fn common_format_in_sources(&self) -> Option<ImageFormat> {
         if self.file_list.is_empty() {
-            return ImageFormat::Unspecified;
+            return None;
         }
         let mut all_formats = self.file_list.iter().map(|file_data| {
-            ImageFormat::infer_format(&file_data.full_path)
+            Self::infer_format(&file_data.full_path)
         });
         let first_format = all_formats.next().unwrap();
         match all_formats.all(|fmt| fmt == first_format) {
             true => first_format,
-            false => ImageFormat::Unspecified
+            false => None
         }
     }
 }

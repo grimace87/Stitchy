@@ -1,6 +1,6 @@
 
 use crate::options::OptV1;
-use stitchy_core::{ImageFormat, AlignmentMode, TakeFrom, OrderBy};
+use stitchy_core::{image::ImageFormat, AlignmentMode, TakeFrom, OrderBy};
 use clap::Parser;
 use serde::{Serialize, Deserialize};
 
@@ -201,17 +201,17 @@ impl Opt {
         }
     }
 
-    pub fn get_requested_image_format(&self) -> ImageFormat {
+    pub fn get_requested_image_format(&self) -> Option<ImageFormat> {
         if self.jpeg {
-            ImageFormat::Jpeg
+            Some(ImageFormat::Jpeg)
         } else if self.png {
-            ImageFormat::Png
+            Some(ImageFormat::Png)
         } else if self.gif {
-            ImageFormat::Gif
+            Some(ImageFormat::Gif)
         } else if self.bmp {
-            ImageFormat::Bmp
+            Some(ImageFormat::Bmp)
         } else {
-            ImageFormat::Unspecified
+            None
         }
     }
 
