@@ -4,14 +4,11 @@ version = "0.1.4"
 authors = ["Thomas Reichert"]
 edition = "2021"
 license = "MIT"
-description = "Combine multiple image files into a single image"
+description = "CLI tool to combine multiple image files into a single image"
 repository = "https://github.com/grimace87/Stitchy"
 readme = "README.md"
 keywords = ["image", "join"]
 categories = ["command-line-utilities", "multimedia::images"]
-exclude = [
-    "/images/testing/"
-]
 
 [dependencies]
 clap = { workspace = true }
