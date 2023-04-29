@@ -1,7 +1,5 @@
 
-### Planned
-
-### 0.1.5 (April 23, 2022)
+### 0.1.5 (April 29, 2023)
 
 - Moved much of the inner workings to the new `stitchy-core` crate, which is now a dependency
 - Completely changed the flags used for controlling selection of source files in the current directory
