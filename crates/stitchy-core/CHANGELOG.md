@@ -3,6 +3,7 @@
 
 - Fix occasional issue where it refuses to operate with images due to their dimensions
 - Fix black border sometimes present even in relatively simple scenarios
+- Handle rotation data from smartphone photos
 - Manual control over grid layout
 - Add support for WebP (and maybe more formats)
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
