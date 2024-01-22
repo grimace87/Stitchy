@@ -7,7 +7,7 @@ mod profiles;
 mod tests;
 
 use options::Opt;
-use stitchy_core::{Stitch, ImageFiles, OrderBy, TakeFrom, util::make_size_string};
+use stitchy_core::{Stitch, ImageFiles, FilePathWithMetadata, OrderBy, TakeFrom, util::make_size_string};
 use clap::Parser;
 
 fn main() {
@@ -81,7 +81,7 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
     // Determine the list of files to use as input, and from those, determine the output path
     let number_of_files = opt.number_of_files.ok_or_else(|| String::from(
         "Internal error - sorting files before verifying that a number was supplied"))?;
-    let image_sources = ImageFiles::builder()
+    let image_sources = ImageFiles::<FilePathWithMetadata>::builder()
         .add_current_directory(vec![])?
         .build()?
         .sort_and_truncate_by(

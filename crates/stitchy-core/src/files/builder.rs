@@ -1,7 +1,9 @@
 
-use crate::{ImageFiles, files::FileProperties};
+use crate::{ImageFiles, FileLocation, FileProperties, FilePath, FilePathWithMetadata};
 use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
+use std::fmt::Debug;
+use std::marker::PhantomData;
+use std::path::PathBuf;
 
 /// Builder for the [`ImageFiles`] struct.
 ///
@@ -9,61 +11,48 @@ use std::path::{Path, PathBuf};
 ///
 /// See documentation for [`ImageFiles`] for more information.
 #[derive(Default)]
-pub struct ImageFilesBuilder {
-    file_list: Vec<PathBuf>
+pub struct ImageFilesBuilder<P: FileProperties, L: FileLocation<P>> {
+    file_list: Vec<L>,
+    phantom: PhantomData<P>
 }
 
-impl ImageFilesBuilder {
+impl<P, L> ImageFilesBuilder<P, L>
+    where P: FileProperties + Default + Debug, L: FileLocation<P> + Default + Debug
+{
 
     /// Return an [ImageFiles] containing the metadata of the set of source files.
     ///
     /// If there was an error reading the metadata of any file, it will be returned as a String.
-    pub fn build(self) -> Result<ImageFiles, String> {
-        let mut image_files: Vec<FileProperties> = vec!();
-        for path in self.file_list.into_iter() {
-
-            // Get file modify date from its metadata
-            let (modify_time, size_bytes) = {
-                let metadata = path
-                    .metadata()
-                    .map_err(|_| format!("Failed reading metadata for: {:?}", path))?;
-                let time_result = metadata
-                    .modified()
-                    .map_err(|_| format!("Failed reading modify date for: {:?}", path));
-                (time_result, metadata.len())
-            };
-            if modify_time.is_err() {
-                println!("{}", modify_time.unwrap_err());
-                continue;
-            }
-
-            // All seems well, push this file's properties into the vector
-            let path_str = match path.to_str() {
-                Some(path_as_str) => path_as_str,
-                None => return Err(format!("Failed interpreting path: {:?}", path))
-            };
-            let properties = FileProperties {
-                full_path: path_str.to_string(),
-                modify_time: modify_time.unwrap(),
-                size_bytes
-            };
+    pub fn build(self) -> Result<ImageFiles<P>, String> {
+        let mut image_files: Vec<P> = vec!();
+        for file_path in self.file_list.into_iter() {
+            let properties = file_path.into_properties()?;
             image_files.push(properties);
         }
         Ok(ImageFiles::new(image_files))
     }
 
     /// Add a single file to the working set, given a PathBuf with its absolute path.
-    pub fn add_file(mut self, path: PathBuf) -> Result<Self, String> {
-        let accepted_extensions = ImageFiles::allowed_extensions();
-        if !Self::extension_in_list(&path, &accepted_extensions) {
-            return Err(format!("File not recognised as image file: {:?}", path));
+    pub fn add_file(mut self, location: L) -> Result<Self, String> {
+        let accepted_extensions = ImageFiles::<P>::allowed_extensions();
+        let file_extension = location.extension()?;
+        if !Self::extension_in_list(file_extension.as_str(), &accepted_extensions) {
+            return Err(format!("File not recognised as image file: {:?}", location));
         }
-        if !path.is_file() {
-            return Err(format!("Path is not a file: {:?}", path));
+        if !location.is_file()? {
+            return Err(format!("Path is not a file: {:?}", location));
         }
-        self.file_list.push(path);
+        self.file_list.push(location);
         Ok(self)
     }
+
+    /// Checks if a file has an extension matching any in a given set
+    fn extension_in_list(extension: &str, accepted_extensions: &[&str; 5]) -> bool {
+        accepted_extensions.contains(&extension)
+    }
+}
+
+impl ImageFilesBuilder<FilePathWithMetadata, FilePath> {
 
     /// Add to the working set all files within the current directory that have known image file
     /// extensions.
@@ -92,8 +81,8 @@ impl ImageFilesBuilder {
     pub fn add_directory(mut self, source_path: PathBuf) -> Result<Self, String> {
 
         // Scan directory and add all image files found
-        let accepted_extensions = ImageFiles::allowed_extensions();
-        let mut image_files: Vec<PathBuf> = vec!();
+        let accepted_extensions = ImageFiles::<FilePathWithMetadata>::allowed_extensions();
+        let mut image_files: Vec<FilePath> = vec!();
         if source_path.is_dir() {
             for entry in std::fs::read_dir(source_path).unwrap() {
 
@@ -120,12 +109,18 @@ impl ImageFilesBuilder {
                 }
 
                 // Check the extension is a known image format
-                if !Self::extension_in_list(&path, &accepted_extensions) {
+                let extension = path.extension()
+                    .unwrap_or(OsStr::new(""))
+                    .to_ascii_lowercase();
+                let lower_str_extension = extension
+                    .to_str()
+                    .unwrap_or("");
+                if !Self::extension_in_list(lower_str_extension, &accepted_extensions) {
                     continue;
                 }
 
                 // Add to list of usable paths
-                image_files.push(path);
+                image_files.push(FilePath::new(path));
             }
         } else {
             return Err(
@@ -134,17 +129,5 @@ impl ImageFilesBuilder {
 
         self.file_list.append(&mut image_files);
         Ok(self)
-    }
-
-    /// Checks if a file has an extension matching any in a given set
-    fn extension_in_list(file_path: &Path, accepted_extensions: &[&str; 5]) -> bool {
-        let extension = file_path.extension()
-            .unwrap_or(OsStr::new(""))
-            .to_ascii_lowercase();
-        let lower_str_extension = extension
-            .to_str()
-            .unwrap_or("");
-
-        accepted_extensions.contains(&lower_str_extension)
     }
 }

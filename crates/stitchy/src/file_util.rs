@@ -1,12 +1,12 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFiles, image::{ImageFormat, ImageOutputFormat, DynamicImage}};
+use stitchy_core::{ImageFiles, FilePathWithMetadata, image::{ImageFormat, ImageOutputFormat, DynamicImage}};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<PathBuf, String> {
+pub fn next_available_output(sources: &ImageFiles<FilePathWithMetadata>, options: &Opt) -> Result<PathBuf, String> {
 
-    let target_extension = ImageFiles
+    let target_extension = ImageFiles::<FilePathWithMetadata>
         ::get_main_extension(determine_output_format(sources, options)?)
         .unwrap_or("jpg");
 
@@ -16,7 +16,7 @@ pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<Path
         Err(_) => return Err(String::from("Could not access current directory"))
     };
     let mut un_numbered_file_exists = false;
-    for &extension in ImageFiles::allowed_extensions().iter() {
+    for &extension in ImageFiles::<FilePathWithMetadata>::allowed_extensions().iter() {
         current_path.push(format!("stitch.{}", extension));
         if current_path.is_file() {
             un_numbered_file_exists = true;
@@ -35,7 +35,7 @@ pub fn next_available_output(sources: &ImageFiles, options: &Opt) -> Result<Path
     let mut i = 1usize;
     while i < 1000 {
         let mut numbered_file_exists = false;
-        for &extension in ImageFiles::allowed_extensions().iter() {
+        for &extension in ImageFiles::<FilePathWithMetadata>::allowed_extensions().iter() {
             let file_name: String = format!("stitch_{}.{}", i, extension);
             current_path.push(file_name);
             if current_path.is_file() {
@@ -85,7 +85,10 @@ pub fn make_ratio_string(input_size: u64, output_size: u64) -> String {
     format!("{:.0}%", ratio * 100.0)
 }
 
-pub fn determine_output_format(sources: &ImageFiles, options: &Opt) -> Result<ImageFormat, String> {
+pub fn determine_output_format(
+    sources: &ImageFiles<FilePathWithMetadata>,
+    options: &Opt
+) -> Result<ImageFormat, String> {
 
     let requested_format: Option<ImageFormat> = options.get_requested_image_format();
 

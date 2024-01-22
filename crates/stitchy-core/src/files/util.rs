@@ -1,4 +1,6 @@
 
+use image::ImageFormat;
+
 const BYTES_KIB: u64 = 1024;
 const BYTES_MIB: u64 = 1024 * 1024;
 
@@ -22,4 +24,15 @@ pub fn make_size_string(length_bytes: u64) -> String {
         ),
         l => format!("{} MiB", l / BYTES_MIB)
     }
+}
+
+/// Mappings of known file extensions to their image format
+pub fn extension_formats() -> [(&'static str, ImageFormat); 5] {
+    [
+        (".jpg", ImageFormat::Jpeg),
+        (".jpeg", ImageFormat::Jpeg),
+        (".png", ImageFormat::Png),
+        (".gif", ImageFormat::Gif),
+        (".bmp", ImageFormat::Bmp)
+    ]
 }

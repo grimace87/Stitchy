@@ -1,6 +1,6 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFiles, image::ImageFormat, OrderBy, TakeFrom, Stitch};
+use stitchy_core::{ImageFiles, FilePathWithMetadata, image::ImageFormat, OrderBy, TakeFrom, Stitch, extension_formats};
 
 fn clear_output() -> Result<(), String> {
     let current_path = std::env::current_dir().unwrap();
@@ -20,7 +20,7 @@ fn clear_output() -> Result<(), String> {
 pub fn test_output_formats() {
 
     // Per allowed extension, infer the type enum and generate an output
-    for &extension in ImageFiles::allowed_extensions().iter() {
+    for &extension in ImageFiles::<FilePathWithMetadata>::allowed_extensions().iter() {
 
         // Clear existing file
         let clear_result = clear_output();
@@ -39,7 +39,12 @@ pub fn test_output_formats() {
         // Build options set matching the image format under test
         let retrieved_files = retrieve_files_result.unwrap();
         let all_files_count = retrieved_files.file_count();
-        let format = ImageFiles::infer_format(extension);
+        let mut format: Option<ImageFormat> = None;
+        for &(ext, fmt) in extension_formats().iter() {
+            if ext == extension {
+                format = Some(fmt);
+            }
+        }
         let options = match format {
             Some(ImageFormat::Jpeg) => Opt {
                 number_of_files: Some(all_files_count), jpeg: true, ..Opt::default()

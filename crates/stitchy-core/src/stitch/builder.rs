@@ -1,5 +1,6 @@
 
-use crate::{AlignmentMode, Stitch, ImageFiles, image::DynamicImage};
+use crate::{AlignmentMode, Stitch, ImageFiles, image::DynamicImage, FileProperties};
+use std::fmt::Debug;
 
 /// Builder for a Stitch.
 ///
@@ -24,7 +25,9 @@ impl StitchBuilder {
         }
     }
 
-    pub fn image_files(self, files: ImageFiles) -> Result<StitchBuilder, String> {
+    pub fn image_files<P>(self, files: ImageFiles<P>) -> Result<StitchBuilder, String>
+        where P: FileProperties + Default + Debug
+    {
         let images = files.into_image_contents(false)?;
         Ok(StitchBuilder {
             images,

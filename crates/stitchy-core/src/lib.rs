@@ -44,7 +44,14 @@ mod tests;
 pub use enums::{OrderBy, TakeFrom};
 
 /// Types used for loading files and passing them into the image stitching process
-pub use files::{image::ImageFiles, builder::ImageFilesBuilder};
+pub use files::{
+    FileLocation,
+    FileProperties,
+    builder::ImageFilesBuilder,
+    image::ImageFiles,
+    path::{FilePath, FilePathWithMetadata},
+    util::extension_formats
+};
 
 /// Type used for running the image stitching process
 pub use stitch::{Stitch, AlignmentMode, builder::StitchBuilder};

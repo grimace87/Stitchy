@@ -9,6 +9,10 @@
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Multi-threading support
 
+### Unreleased
+
+- (BREAKING) Added traits `FileLocation` and `FileProperties`, `ImageFiles` is generic over those
+
 ### 0.1.0 (April 29, 2023)
 
 - Created this crate from parts of the original `stitchy` crate (version 0.1.4), allowing use outside the CLI program

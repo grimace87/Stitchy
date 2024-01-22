@@ -4,6 +4,7 @@ members = [
     "crates/stitchy-core"
 ]
 default-members = ["crates/stitchy"]
+resolver = "2"
 
 [workspace.dependencies]
 clap = { version = "4.1.11", default-features = false, features = ["std", "derive"] }

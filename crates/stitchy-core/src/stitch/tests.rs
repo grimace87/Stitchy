@@ -3,6 +3,7 @@ use crate::enums::{OrderBy, TakeFrom};
 use crate::files::image::ImageFiles;
 use crate::stitch::{Axis, Stitch};
 use crate::AlignmentMode;
+use crate::FilePathWithMetadata;
 
 fn create_stitch(alignment: AlignmentMode) -> Stitch {
     Stitch {
@@ -105,7 +106,7 @@ pub fn test_types() {
         "{}", clear_result.err().unwrap_or(String::new()));
 
     // Get files from test directory
-    let retrieve_files_result = ImageFiles::builder()
+    let retrieve_files_result = ImageFiles::<FilePathWithMetadata>::builder()
         .add_current_directory(vec!("..", "..", "images", "testing", "test_types")).unwrap()
         .build();
     assert!(
