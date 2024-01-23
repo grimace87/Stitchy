@@ -53,6 +53,9 @@ pub use files::{
     util::extension_formats
 };
 
+#[cfg(unix)]
+pub use files::fd::{OwnedRawFdLocation, OwnedRawFdProperties};
+
 /// Type used for running the image stitching process
 pub use stitch::{Stitch, AlignmentMode, builder::StitchBuilder};
 
@@ -63,5 +66,5 @@ pub mod util {
 
 /// Re-exports from the [image](https://crates.io/crates/image) crate
 pub mod image {
-    pub use image::{DynamicImage, GenericImage, ImageFormat, ImageOutputFormat};
+    pub use image::{DynamicImage, GenericImage, ImageFormat, ImageOutputFormat, ImageError};
 }

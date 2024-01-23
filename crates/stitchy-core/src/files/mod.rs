@@ -1,5 +1,9 @@
 
 pub mod builder;
+
+#[cfg(unix)]
+pub mod fd;
+
 pub mod image;
 pub mod path;
 pub mod util;

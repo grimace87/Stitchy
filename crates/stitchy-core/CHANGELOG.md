@@ -12,6 +12,7 @@
 ### Unreleased
 
 - (BREAKING) Added traits `FileLocation` and `FileProperties`, `ImageFiles` is generic over those
+- Added types `OwnedRawFdLocation` and `OwnedRawFdProperties` for working with raw file descriptors (Unix systems only)
 
 ### 0.1.0 (April 29, 2023)
 
