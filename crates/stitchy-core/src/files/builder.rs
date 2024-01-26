@@ -10,14 +10,22 @@ use std::path::PathBuf;
 /// Assemble a list of image files, chosen individually or a directory at a time.
 ///
 /// See documentation for [`ImageFiles`] for more information.
-#[derive(Default)]
 pub struct ImageFilesBuilder<P: FileProperties, L: FileLocation<P>> {
     file_list: Vec<L>,
     phantom: PhantomData<P>
 }
 
+impl<P: FileProperties, L: FileLocation<P>> Default for ImageFilesBuilder<P, L> {
+    fn default() -> Self {
+        Self {
+            file_list: vec![],
+            phantom: PhantomData::default()
+        }
+    }
+}
+
 impl<P, L> ImageFilesBuilder<P, L>
-    where P: FileProperties + Default + Debug, L: FileLocation<P> + Default + Debug
+    where P: FileProperties + Debug, L: FileLocation<P> + Debug
 {
 
     /// Return an [ImageFiles] containing the metadata of the set of source files.

@@ -26,7 +26,7 @@ impl StitchBuilder {
     }
 
     pub fn image_files<P>(self, files: ImageFiles<P>) -> Result<StitchBuilder, String>
-        where P: FileProperties + Default + Debug
+        where P: FileProperties + Debug
     {
         let images = files.into_image_contents(false)?;
         Ok(StitchBuilder {

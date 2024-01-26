@@ -11,14 +11,14 @@ use image::ImageFormat;
 /// Construct using the [`ImageFilesBuilder`] struct.
 ///
 /// See crate-level documentation for examples.
-pub struct ImageFiles<P: FileProperties + Default> {
+pub struct ImageFiles<P: FileProperties> {
     file_list: Vec<P>
 }
 
-impl<P: FileProperties + Default> ImageFiles<P> {
+impl<P: FileProperties> ImageFiles<P> {
 
     /// Create a new [ImageFilesBuilder] for selecting files
-    pub fn builder<L: FileLocation<P> + Default>() -> ImageFilesBuilder<P, L> {
+    pub fn builder<L: FileLocation<P>>() -> ImageFilesBuilder<P, L> {
         ImageFilesBuilder::default()
     }
 
