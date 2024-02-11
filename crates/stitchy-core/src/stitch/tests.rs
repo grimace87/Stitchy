@@ -1,7 +1,75 @@
-use crate::AlignmentMode;
 use crate::enums::{OrderBy, TakeFrom};
 use crate::files::image::ImageFiles;
-use crate::stitch::Stitch;
+use crate::stitch::{Axis, Stitch};
+use crate::AlignmentMode;
+
+fn create_stitch(alignment: AlignmentMode) -> Stitch {
+    Stitch {
+        images: Vec::new(),
+        alignment,
+        width_limit: 0,
+        height_limit: 0,
+        main_axis: Axis::Horizontal,
+        grid_size_main_axis: 0,
+        grid_size_cross_axis: 0,
+        main_lines_with_full_size: 0,
+        cross_axis_pixel_size_per_image: 1,
+        image_rects: Vec::new(),
+        largest_main_line_pixels: 1,
+    }
+}
+
+#[test]
+fn check_horizontal_and_vertical_resizing() {
+    let mut stitch = create_stitch(AlignmentMode::Horizontal);
+    for count in 0..=10 {
+        stitch.images.resize_with(count as usize, Default::default);
+        stitch.update_grid_size();
+        let expected = (count, 1, 1);
+        assert_eq!(
+            expected,
+            (
+                stitch.grid_size_main_axis,
+                stitch.grid_size_cross_axis,
+                stitch.main_lines_with_full_size
+            ),
+            "{} images should be one filled row",
+            count
+        );
+    }
+}
+
+#[test]
+fn check_grid_resizing() {
+    let sizes: [(u32, (u32, u32, u32)); 8] = [
+        (0, (1, 0, 0)),
+        (1, (1, 1, 1)),
+        (2, (2, 1, 1)),
+        (3, (2, 2, 1)),
+        (4, (2, 2, 2)),
+        (5, (3, 2, 1)),
+        (7, (3, 3, 2)),
+        (9, (3, 3, 3)),
+    ];
+    let mut stitch = create_stitch(AlignmentMode::Grid);
+    for (count, expected_dimensions) in sizes.into_iter() {
+        stitch.images.resize_with(count as usize, Default::default);
+        stitch.update_grid_size();
+        assert_eq!(
+            expected_dimensions,
+            (
+                stitch.grid_size_main_axis,
+                stitch.grid_size_cross_axis,
+                stitch.main_lines_with_full_size
+            ),
+            "{} images should be {}x{}, {} row(s) filled",
+            count,
+            expected_dimensions.0,
+            expected_dimensions.1,
+            expected_dimensions.2
+        );
+    }
+}
 
 fn clear_output() -> Result<(), String> {
     let current_path = std::env::current_dir().unwrap();
