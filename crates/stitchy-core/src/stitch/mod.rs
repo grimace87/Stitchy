@@ -148,40 +148,26 @@ impl Stitch {
 
     /// Sets grid_size_main_axis, grid_size_cross_axis and main_lines_with_full_size
     fn update_grid_size(&mut self) {
-        let i = self.images.len() as  u32;
+        let count = self.images.len() as u32;
 
         // Handle very particular alignments
         if self.alignment == AlignmentMode::Horizontal || self.alignment == AlignmentMode::Vertical {
-            self.grid_size_main_axis = i;
+            self.grid_size_main_axis = count;
             self.grid_size_cross_axis = 1;
             self.main_lines_with_full_size = 1;
             return;
         }
 
-        // Handle special case where i is 2 or 3
-        if i < 4 {
-            self.grid_size_main_axis = i;
-            self.grid_size_cross_axis = 1;
-            self.main_lines_with_full_size = 1;
-            return;
-        }
-
-        // Find the largest value 't' that satisfies (t - 1)^2 < i
+        // Find the smallest value 't' that satisfies t^2 >= count
         let mut t: u32 = 1;
-        while (t - 1) * (t - 1) < i {
+        while t * t < count {
             t += 1;
         }
-        t -= 1;
 
         // Can now determine sizes of axes
         self.grid_size_main_axis = t;
-        if i <= (t * (t - 1)) {
-            self.grid_size_cross_axis = t - 1;
-            self.main_lines_with_full_size = i - (t - 1) * (t - 1);
-        } else {
-            self.grid_size_cross_axis = t;
-            self.main_lines_with_full_size = i - t * (t - 1);
-        }
+        self.grid_size_cross_axis = count.div_ceil(t);
+        self.main_lines_with_full_size = count / t;
     }
 
     /// Sets cross_axis_pixel_size_per_image
