@@ -1,3 +1,4 @@
+
 use crate::enums::{OrderBy, TakeFrom};
 use crate::files::image::ImageFiles;
 use crate::stitch::{Axis, Stitch};
@@ -16,6 +17,20 @@ fn create_stitch(alignment: AlignmentMode) -> Stitch {
         cross_axis_pixel_size_per_image: 1,
         image_rects: Vec::new(),
         largest_main_line_pixels: 1,
+    }
+}
+
+fn clear_output() -> Result<(), String> {
+    let current_path = std::env::current_dir().unwrap();
+    assert!(current_path.is_dir());
+    let mut test_file = current_path.clone();
+    test_file.push("test.jpg");
+    return if test_file.is_file() {
+        std::fs::remove_file(test_file.as_path()).map_err(
+            |e| format!("Previous test file exists but couldn't be removed: {}", e)
+        )
+    } else {
+        Ok(())
     }
 }
 
@@ -41,15 +56,24 @@ fn check_horizontal_and_vertical_resizing() {
 
 #[test]
 fn check_grid_resizing() {
-    let sizes: [(u32, (u32, u32, u32)); 8] = [
+    let sizes: [(u32, (u32, u32, u32)); 17] = [
         (0, (1, 0, 0)),
         (1, (1, 1, 1)),
         (2, (2, 1, 1)),
         (3, (2, 2, 1)),
         (4, (2, 2, 2)),
         (5, (3, 2, 1)),
+        (6, (3, 2, 2)),
         (7, (3, 3, 2)),
+        (8, (3, 3, 2)),
         (9, (3, 3, 3)),
+        (10, (4, 3, 2)),
+        (11, (4, 3, 2)),
+        (12, (4, 3, 3)),
+        (13, (4, 4, 3)),
+        (14, (4, 4, 3)),
+        (15, (4, 4, 3)),
+        (16, (4, 4, 4))
     ];
     let mut stitch = create_stitch(AlignmentMode::Grid);
     for (count, expected_dimensions) in sizes.into_iter() {
@@ -68,20 +92,6 @@ fn check_grid_resizing() {
             expected_dimensions.1,
             expected_dimensions.2
         );
-    }
-}
-
-fn clear_output() -> Result<(), String> {
-    let current_path = std::env::current_dir().unwrap();
-    assert!(current_path.is_dir());
-    let mut test_file = current_path.clone();
-    test_file.push("test.jpg");
-    return if test_file.is_file() {
-        std::fs::remove_file(test_file.as_path()).map_err(
-            |e| format!("Previous test file exists but couldn't be removed: {}", e)
-        )
-    } else {
-        Ok(())
     }
 }
 
