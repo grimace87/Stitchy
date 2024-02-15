@@ -1,4 +1,8 @@
 
+### 0.1.6 (February 16, 2024)
+
+- Updated to support `stitchy-core` 0.1.1
+
 ### 0.1.5 (April 29, 2023)
 
 - Moved much of the inner workings to the new `stitchy-core` crate, which is now a dependency

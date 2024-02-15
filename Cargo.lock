@@ -300,7 +300,7 @@ dependencies = [
 
 [[package]]
 name = "stitchy"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "clap",
  "home",
@@ -311,7 +311,7 @@ dependencies = [
 
 [[package]]
 name = "stitchy-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "image",

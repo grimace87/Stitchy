@@ -9,10 +9,11 @@
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Multi-threading support
 
-### Unreleased
+### 0.1.1 (February 16, 2024)
 
-- (BREAKING) Added traits `FileLocation` and `FileProperties`, `ImageFiles` is generic over those
+- (BREAKING) Added traits `FileLocation` and `FileProperties`, where `ImageFiles` is generic over those
 - Added types `OwnedRawFdLocation` and `OwnedRawFdProperties` for working with raw file descriptors (Unix systems only)
+- (Credit: Friendly-Banana) Removed edge cases in grid layout to make it more intuitive
 
 ### 0.1.0 (April 29, 2023)
 
