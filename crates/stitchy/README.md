@@ -4,53 +4,63 @@
 ![example workflow](https://github.com/grimace87/Stitchy/actions/workflows/cargo.yml/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/stitchy.svg)](https://crates.io/crates/stitchy)
 
-Joins multiple existing image files into a single output. Supports various flags for
-arranging the output, choosing the image format, or scaling down to desirable dimensions.
-
-This crate is a CLI tool which wraps the features of the
+CLI tool which wraps the features of the
 [stitchy-core](https://github.com/grimace87/Stitchy/tree/master/crates/stitchy-core) crate, adding configuration
 capabilities using command-line arguments and profile defaults, and adding file output.
 
-### Running
+See the [root project overview](https://github.com/grimace87/Stitchy) for an
+overview of the Stitchy ecosystem.
 
-Performed with a simple command that operates on the current directory:
+## Installing
 
-`stitchy n`
+Rust version 1.63 or later is required.
 
-where `n` is the number of images you would like to stitch together into one. The tool
-will take the `n` most recent files and arrange them in a grid, resizing where needed,
-and outputting a file "stitch.jpg".
-
-Various flags exist to adjust how source images are selected and how the output is generated.
-Run `stitchy --help` to see a list of these flags.
-
-### Installing
-
-- Install Rust and Cargo if you don't already have them - see the official documentation
-  at https://www.rust-lang.org/tools/install to install `rustup` and `cargo` and set up a
-  toolchain
+- [Install the Rust programming language](https://www.rust-lang.org/tools/install) if you don't 
+  already have it; this will include the `cargo` tool by default
 - Run `cargo install stitchy`
 
-That's it! The binary will be built from source and placed in the `.cargo/bin` directory
-inside your home folder. This should be available on your PATH if Cargo is installed
-correctly.
+That's it! The binary will be built from source and then become available in a command line.
+If you installed Cargo with default settings, binaries will be in the `.cargo/bin` directory
+inside your home directory, which will be available on your PATH.
 
-Note that this crate will only compile with Rust version 1.56 and up.
+### NetBSD
 
-#### NetBSD
-
-If you are using NetBSD, `stitchy` is available from the official repositories.
-Simply run,
+If you are using NetBSD, `stitchy` is available from the official repositories. To install the
+binary package, simply run:
 
 ```sh
 pkgin install stitchy
 ```
 
-to install the binary package
+## Running
 
-### Details
+The simplest case takes a given number of image files from the current directory and stitches
+them using sensible configuration defaults:
 
-- Input files may be in JPEG, PNG, GIF or BMP format, and are taken from the current directory.
-  The output format will match the source images if they are all the same, or default to JPEG
-  otherwise. Flags can be used to require a particular output format.
-- Compatible with Windows, macOS, Linux and NetBSD.
+`stitchy n`
+
+where `n` is the number of images you would like to stitch together into one. The tool
+will take the `n` most recent files and arrange them in a file named "stitch".
+
+Various flags exist to adjust how source images are selected and how the output is generated.
+Run `stitchy --help` to see a list of these flags.
+
+## Configuration
+
+For the full list of configuration options, run `stitchy --help`. Some options are:
+- Set the desired output format using `--png`, `--jpeg`, `--gif` or `--bmp`; for JPEG a
+  quality option (0 to 100) can be passed like `--quality=___`
+- Set a limit on one output dimension using `--maxh=___` or `--maxw=___`, or both using
+  `--maxd=___`
+
+## Saving Defaults
+
+Defaults can be saved to a file `.stitchyrc` in your home directory. Whenever you run `stitchy`,
+these defaults are applied, unless you override them in the current command.
+
+- Save default options using the flag `--setdefaults` and the options you want to save - though
+  do not pass a number of images - and a stitch operation will not take place but rather the
+  defaults file will be written using the other arguments supplied
+- Clear the defaults by running `stitchy --cleardefaults`
+- Check the current defaults by running `stitchy --printdefaults`; this has the same effect as
+  printing the contents of the `.stitchyrc` file to the terminal.
