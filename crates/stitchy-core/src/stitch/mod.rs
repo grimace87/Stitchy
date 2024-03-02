@@ -355,11 +355,11 @@ impl Stitch {
         // Determine output file dimensions
         let out_w = match self.main_axis {
             Axis::Horizontal => self.largest_main_line_pixels,
-            _ => self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis
+            Axis::Vertical => self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis
         };
         let out_h = match self.main_axis {
             Axis::Horizontal => self.cross_axis_pixel_size_per_image * self.grid_size_cross_axis,
-            _ => self.largest_main_line_pixels
+            Axis::Vertical => self.largest_main_line_pixels
         };
 
         // Create the image and paint individual images

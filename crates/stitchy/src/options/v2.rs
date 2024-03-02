@@ -170,7 +170,7 @@ impl Opt {
         let targeting_quality = self.quality != 100 && format_flag_count > 0;
         let defaults_support_quality = match previous_options {
             Some(options) => options.supports_quality(),
-            _ => false
+            None => false
         };
         if targeting_quality && !self.supports_quality() && !defaults_support_quality {
             return Some(
@@ -185,7 +185,7 @@ impl Opt {
         // Verify a sensible number was given
         let number_of_files = match self.number_of_files {
             Some(num) => num,
-            _ => return Some("You did not provide number_of_files and StructOpt did not catch this error")
+            None => return Some("You did not provide number_of_files and StructOpt did not catch this error")
         };
         if number_of_files == 0 {
             return Some("The number of images to stitch must be at least 1.");
