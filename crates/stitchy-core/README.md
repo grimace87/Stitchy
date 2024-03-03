@@ -46,7 +46,7 @@ fn run_stitch() -> Result<(), String> {
     file_path.push("stitch.png");
     let mut file_writer = File::create(file_path).unwrap();
     output.write_to(&mut file_writer, ImageOutputFormat::Png)
-        .map_err(|_| "File metadata could not be read.".to_owned())?;
+        .map_err(|_| "Image could not be written.".to_owned())?;
     Ok(())
 }
 ```
