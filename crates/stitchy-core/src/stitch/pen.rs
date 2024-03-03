@@ -64,7 +64,8 @@ impl ImageGridPen for HorizontalGridPen {
 
     fn get_output_dimensions(&self) -> ImageSize {
         ImageSize::new(
-            self.longest_line_length_pixels, self.line_size_pixels * self.line_count as u32)
+            self.longest_line_length_pixels,
+            self.line_size_pixels * self.line_count as u32)
     }
 
     fn generate_output_rects(&mut self, images: &Vec<DynamicImage>) -> Vec<ImageRect> {
@@ -148,16 +149,31 @@ impl ImageGridPen for HorizontalGridPen {
         let using_scale: f64 = f64::min(width_scale, height_scale);
 
         // For each image, downscale its position and size
-        let scaled_rects = image_rects.into_iter()
-            .map(|rect| {
-                ImageRect {
-                    x: (rect.x as f64 * using_scale) as u32,
-                    y: (rect.y as f64 * using_scale) as u32,
-                    w: (rect.w as f64 * using_scale) as u32,
-                    h: (rect.h as f64 * using_scale) as u32
-                }
-            })
-            .collect();
+        let mut pen_x: f64 = 0.0;
+        let mut pen_y: f64 = 0.0;
+        let mut image_on_line: usize = 0;
+        let mut scaled_rects = vec![];
+        for rect in image_rects.into_iter() {
+
+            let w = rect.w as f64 * using_scale;
+            let h = rect.h as f64 * using_scale;
+            let next_pen_x = pen_x + w;
+            let next_pen_y = pen_y + h;
+            scaled_rects.push(ImageRect {
+                x: pen_x.round() as u32,
+                y: pen_y.round() as u32,
+                w: (next_pen_x.round() as u32) - (pen_x.round() as u32),
+                h: (next_pen_y.round() as u32) - (pen_y.round() as u32)
+            });
+
+            image_on_line += 1;
+            if image_on_line >= self.line_length {
+                pen_x = 0.0;
+                pen_y = next_pen_y;
+            } else {
+                pen_x = next_pen_x;
+            }
+        }
 
         // Update output image pixel sizes
         self.line_size_pixels =
@@ -199,7 +215,8 @@ impl ImageGridPen for VerticalGridPen {
 
     fn get_output_dimensions(&self) -> ImageSize {
         ImageSize::new(
-            self.line_size_pixels * self.line_count as u32, self.longest_line_length_pixels)
+            self.line_size_pixels * self.line_count as u32,
+            self.longest_line_length_pixels)
     }
 
     fn generate_output_rects(&mut self, images: &Vec<DynamicImage>) -> Vec<ImageRect> {
@@ -283,21 +300,37 @@ impl ImageGridPen for VerticalGridPen {
         let using_scale: f64 = f64::min(width_scale, height_scale);
 
         // For each image, downscale its position and size
-        let scaled_rects = image_rects.into_iter()
-            .map(|rect| {
-                ImageRect {
-                    x: (rect.x as f64 * using_scale) as u32,
-                    y: (rect.y as f64 * using_scale) as u32,
-                    w: (rect.w as f64 * using_scale) as u32,
-                    h: (rect.h as f64 * using_scale) as u32
-                }
-            })
-            .collect();
+        let mut pen_y: f64 = 0.0;
+        let mut pen_x: f64 = 0.0;
+        let mut image_on_line: usize = 0;
+        let mut scaled_rects = vec![];
+        for rect in image_rects.into_iter() {
+
+            let h = rect.h as f64 * using_scale;
+            let w = rect.w as f64 * using_scale;
+            let next_pen_y = pen_y + h;
+            let next_pen_x = pen_x + w;
+            scaled_rects.push(ImageRect {
+                x: pen_x.round() as u32,
+                y: pen_y.round() as u32,
+                w: (next_pen_x.round() as u32) - (pen_x.round() as u32),
+                h: (next_pen_y.round() as u32) - (pen_y.round() as u32)
+            });
+
+            image_on_line += 1;
+            if image_on_line >= self.line_length {
+                pen_x = next_pen_x;
+                pen_y = 0.0;
+            } else {
+                pen_y = next_pen_y;
+            }
+        }
 
         // Update output image pixel sizes
         self.line_size_pixels =
-            (self.line_size_pixels as f64 * using_scale) as u32;
-        self.longest_line_length_pixels = (self.longest_line_length_pixels as f64 * using_scale) as u32;
+            (self.line_size_pixels as f64 * using_scale).round() as u32;
+        self.longest_line_length_pixels =
+            (self.longest_line_length_pixels as f64 * using_scale).round() as u32;
 
         scaled_rects
     }

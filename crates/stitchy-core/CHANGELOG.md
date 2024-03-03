@@ -1,13 +1,16 @@
 
 ### Planned
 
-- Fix occasional issue where it refuses to operate with images due to their dimensions
-- Fix black border sometimes present even in relatively simple scenarios
 - Handle rotation data from smartphone photos
 - Manual control over grid layout
 - Add support for WebP (and maybe more formats)
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Multi-threading support
+
+### Unreleased
+
+- Fixed imprecise image positioning when downscaling to fit dimension limits, which sometimes caused black lines to
+  appear through the output image
 
 ### 0.1.1 (February 16, 2024)
 
