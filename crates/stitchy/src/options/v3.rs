@@ -1,5 +1,5 @@
 
-use crate::options::{OptV1, OptV2};
+use crate::{options::{OptV1, OptV2}, file_util::to_absolute_dir};
 use stitchy_core::{image::ImageFormat, AlignmentMode, TakeFrom, OrderBy};
 use clap::Parser;
 use serde::{Serialize, Deserialize};
@@ -60,6 +60,9 @@ pub struct Opt {
     #[arg(long)]
     pub order: Option<OrderBy>,
 
+    #[arg(short, long = "input-dir")]
+    pub input_dir: Option<String>,
+
     #[arg(required_unless_present_any =
     &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
     pub number_of_files: Option<usize>,
@@ -92,6 +95,7 @@ impl Default for Opt {
             bmp: false,
             quality: DEFAULT_QUALITY,
             order: None,
+            input_dir: None,
             number_of_files: None,
             setdefaults: false,
             cleardefaults: false
@@ -143,6 +147,13 @@ impl Opt {
     }
 
     pub fn check_for_basic_errors(&self, previous_options: &Option<Opt>) -> Option<String> {
+
+        // Verify directories are actually directories
+        if let Some(dir) = &self.input_dir {
+            if let Err(e) = to_absolute_dir(dir) {
+                return Some(e);
+            }
+        }
 
         // Verify not requesting both horizontal and vertical
         if self.horizontal && self.vertical {
@@ -258,6 +269,11 @@ impl Opt {
             (None, that) => that,
             (this, _) => this
         };
+        let input_dir = match (&self.input_dir, &other.input_dir) {
+            (None, Some(that)) => Some(that.clone()),
+            (Some(this), _) => Some(this.clone()),
+            _ => None
+        };
         Opt {
             help: self.help,
             version: self.version,
@@ -275,6 +291,7 @@ impl Opt {
             bmp: self.bmp || (other.bmp && !base_has_format),
             quality: if self.quality != DEFAULT_QUALITY { self.quality } else { other.quality },
             order,
+            input_dir,
             number_of_files,
             setdefaults: self.setdefaults,
             cleardefaults: self.cleardefaults
@@ -303,6 +320,7 @@ impl From<OptV2> for Opt {
             bmp: value.bmp,
             quality: value.quality,
             order: value.order,
+            input_dir: None,
             number_of_files: value.number_of_files,
             setdefaults: value.setdefaults,
             cleardefaults: value.cleardefaults,

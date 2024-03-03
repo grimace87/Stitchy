@@ -22,6 +22,7 @@ pub fn help() {
     println!("                    Allowed values: 'latest', 'alphabetic'");
     println!("  --take-from       Select which end of the sorted file list to take from (default: 'start')");
     println!("                    Allowed values: 'start', 'end'");
+    println!("  --input-dir, -i   Specify a directory to source files from");
     println!("  --horizontal, -h  Force stitching across a single row only");
     println!("  --vertical, -v    Force stitching down a single column only");
     println!("  --maxw=n          Limit output width to n pixels at most");

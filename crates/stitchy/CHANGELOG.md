@@ -1,4 +1,8 @@
 
+### Unreleased
+
+- Specify input directory with `--input-dir` (defaults to current working directory)
+
 ### 0.1.6 (February 16, 2024)
 
 - Updated to support `stitchy-core` 0.1.1

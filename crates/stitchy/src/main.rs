@@ -81,9 +81,20 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
     // Determine the list of files to use as input, and from those, determine the output path
     let number_of_files = opt.number_of_files.ok_or_else(|| String::from(
         "Internal error - sorting files before verifying that a number was supplied"))?;
-    let image_sources = ImageFiles::<FilePathWithMetadata>::builder()
-        .add_current_directory(vec![])?
-        .build()?
+    let unsorted_sources = match &opt.input_dir {
+        Some(source_path) => {
+            let dir = file_util::to_absolute_dir(source_path)?;
+            ImageFiles::<FilePathWithMetadata>::builder()
+                .add_directory(dir)?
+                .build()?
+        }
+        None => {
+            ImageFiles::<FilePathWithMetadata>::builder()
+                .add_current_directory(vec![])?
+                .build()?
+        }
+    };
+    let image_sources = unsorted_sources
         .sort_and_truncate_by(
             number_of_files,
             opt.order.unwrap_or(OrderBy::Latest),

@@ -4,6 +4,16 @@ use stitchy_core::{ImageFiles, FilePathWithMetadata, image::{ImageFormat, ImageO
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
+pub fn to_absolute_dir(path_string: &String) -> Result<PathBuf, String> {
+    let path = PathBuf::from(path_string)
+        .canonicalize()
+        .map_err(|e| format!("Cannot read path: {}", e))?;
+    if !path.is_dir() {
+        return Err(format!("Not a directory: {}", path_string));
+    }
+    Ok(path)
+}
+
 pub fn next_available_output(sources: &ImageFiles<FilePathWithMetadata>, options: &Opt) -> Result<PathBuf, String> {
 
     let target_extension = ImageFiles::<FilePathWithMetadata>
