@@ -57,6 +57,9 @@ impl StitchBuilder {
     }
 
     pub fn stitch(self) -> Result<DynamicImage, String> {
+        if self.images.is_empty() {
+            return Err("No images to stitch".to_owned())
+        }
         Stitch::new(self.images, self.alignment, self.width_limit, self.height_limit)
             .stitch()
     }
