@@ -1,7 +1,8 @@
 
 ### Unreleased
 
-- Specify input directory with `--input-dir` (defaults to current working directory)
+- Specify input directory (`--input-dir` or `-i`) or output directory (`--output-dir` or `-o`); both
+  default to current working directory
 
 ### 0.1.6 (February 16, 2024)
 

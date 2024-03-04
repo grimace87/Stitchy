@@ -9,8 +9,8 @@
 
 ### Unreleased
 
-- Fixed imprecise image positioning when downscaling to fit dimension limits, which sometimes caused black lines to
-  appear through the output image
+- Fixed black lines sometimes appearing in the image due to imprecise downscaling
+- Fixed stitch sometimes failing due to incorrect output bounds after imprecise downscaling
 
 ### 0.1.1 (February 16, 2024)
 
