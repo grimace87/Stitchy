@@ -143,6 +143,9 @@ impl ImageGridPen for HorizontalGridPen {
             return image_rects;
         }
 
+        // Reset the longest known line length; it will be updated
+        self.longest_line_length_pixels = 0;
+
         // Scale according to the greatest necessary reduction
         let width_scale = allowed_width as f64 / total_width as f64;
         let height_scale = allowed_height as f64 / total_height as f64;
@@ -151,14 +154,16 @@ impl ImageGridPen for HorizontalGridPen {
         // For each image, downscale its position and size
         let mut pen_x: f64 = 0.0;
         let mut pen_y: f64 = 0.0;
+        let mut next_pen_x: f64 = 0.0;
+        let mut next_pen_y: f64;
         let mut image_on_line: usize = 0;
         let mut scaled_rects = vec![];
         for rect in image_rects.into_iter() {
 
             let w = rect.w as f64 * using_scale;
             let h = rect.h as f64 * using_scale;
-            let next_pen_x = pen_x + w;
-            let next_pen_y = pen_y + h;
+            next_pen_x = pen_x + w;
+            next_pen_y = pen_y + h;
             scaled_rects.push(ImageRect {
                 x: pen_x.round() as u32,
                 y: pen_y.round() as u32,
@@ -168,6 +173,10 @@ impl ImageGridPen for HorizontalGridPen {
 
             image_on_line += 1;
             if image_on_line >= self.line_length {
+                image_on_line = 0;
+                if self.longest_line_length_pixels < next_pen_x.round() as u32 {
+                    self.longest_line_length_pixels = next_pen_x.round() as u32;
+                }
                 pen_x = 0.0;
                 pen_y = next_pen_y;
             } else {
@@ -175,11 +184,14 @@ impl ImageGridPen for HorizontalGridPen {
             }
         }
 
+        // Check if the pen overshot the known boundary before filling a grid row
+        if self.longest_line_length_pixels < next_pen_x.round() as u32 {
+            self.longest_line_length_pixels = next_pen_x.round() as u32;
+        }
+
         // Update output image pixel sizes
         self.line_size_pixels =
             (self.line_size_pixels as f64 * using_scale) as u32;
-        self.longest_line_length_pixels =
-            (self.longest_line_length_pixels as f64 * using_scale) as u32;
 
         scaled_rects
     }
@@ -294,6 +306,9 @@ impl ImageGridPen for VerticalGridPen {
             return image_rects;
         }
 
+        // Reset the longest known line length; it will be updated
+        self.longest_line_length_pixels = 0;
+
         // Scale according to the greatest necessary reduction
         let width_scale = allowed_width as f64 / total_width as f64;
         let height_scale = allowed_height as f64 / total_height as f64;
@@ -302,14 +317,16 @@ impl ImageGridPen for VerticalGridPen {
         // For each image, downscale its position and size
         let mut pen_y: f64 = 0.0;
         let mut pen_x: f64 = 0.0;
+        let mut next_pen_y: f64 = 0.0;
+        let mut next_pen_x: f64;
         let mut image_on_line: usize = 0;
         let mut scaled_rects = vec![];
         for rect in image_rects.into_iter() {
 
             let h = rect.h as f64 * using_scale;
             let w = rect.w as f64 * using_scale;
-            let next_pen_y = pen_y + h;
-            let next_pen_x = pen_x + w;
+            next_pen_y = pen_y + h;
+            next_pen_x = pen_x + w;
             scaled_rects.push(ImageRect {
                 x: pen_x.round() as u32,
                 y: pen_y.round() as u32,
@@ -319,6 +336,10 @@ impl ImageGridPen for VerticalGridPen {
 
             image_on_line += 1;
             if image_on_line >= self.line_length {
+                image_on_line = 0;
+                if self.longest_line_length_pixels < next_pen_y.round() as u32 {
+                    self.longest_line_length_pixels = next_pen_y.round() as u32;
+                }
                 pen_x = next_pen_x;
                 pen_y = 0.0;
             } else {
@@ -326,11 +347,14 @@ impl ImageGridPen for VerticalGridPen {
             }
         }
 
+        // Check if the pen overshot the known boundary before filling a grid column
+        if self.longest_line_length_pixels < next_pen_y.round() as u32 {
+            self.longest_line_length_pixels = next_pen_y.round() as u32;
+        }
+
         // Update output image pixel sizes
         self.line_size_pixels =
             (self.line_size_pixels as f64 * using_scale).round() as u32;
-        self.longest_line_length_pixels =
-            (self.longest_line_length_pixels as f64 * using_scale).round() as u32;
 
         scaled_rects
     }
