@@ -78,7 +78,7 @@ fn main() {
 /// and prepared for use before calling this function.
 fn run_with_options(opt: Opt) -> Result<String, String> {
 
-    // Determine the list of files to use as input, and from those, determine the output path
+    // Determine the list of files to use as input
     let number_of_files = opt.number_of_files.ok_or_else(|| String::from(
         "Internal error - sorting files before verifying that a number was supplied"))?;
     let unsorted_sources = match &opt.input_dir {
@@ -101,6 +101,8 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
             opt.take_from.unwrap_or(TakeFrom::Start),
             opt.reverse
         )?;
+
+    // Determine the output path, considering the input files if need be
     let total_source_size = image_sources.total_size();
     let output_format = file_util::determine_output_format(&image_sources, &opt)?;
     let output_file_path = file_util::next_available_output(&image_sources, &opt)?;

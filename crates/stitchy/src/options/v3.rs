@@ -63,6 +63,9 @@ pub struct Opt {
     #[arg(short, long = "input-dir")]
     pub input_dir: Option<String>,
 
+    #[arg(short, long = "output-dir")]
+    pub output_dir: Option<String>,
+
     #[arg(required_unless_present_any =
     &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
     pub number_of_files: Option<usize>,
@@ -96,6 +99,7 @@ impl Default for Opt {
             quality: DEFAULT_QUALITY,
             order: None,
             input_dir: None,
+            output_dir: None,
             number_of_files: None,
             setdefaults: false,
             cleardefaults: false
@@ -150,6 +154,11 @@ impl Opt {
 
         // Verify directories are actually directories
         if let Some(dir) = &self.input_dir {
+            if let Err(e) = to_absolute_dir(dir) {
+                return Some(e);
+            }
+        }
+        if let Some(dir) = &self.output_dir {
             if let Err(e) = to_absolute_dir(dir) {
                 return Some(e);
             }
@@ -274,6 +283,11 @@ impl Opt {
             (Some(this), _) => Some(this.clone()),
             _ => None
         };
+        let output_dir = match (&self.output_dir, &other.output_dir) {
+            (None, Some(that)) => Some(that.clone()),
+            (Some(this), _) => Some(this.clone()),
+            _ => None
+        };
         Opt {
             help: self.help,
             version: self.version,
@@ -292,6 +306,7 @@ impl Opt {
             quality: if self.quality != DEFAULT_QUALITY { self.quality } else { other.quality },
             order,
             input_dir,
+            output_dir,
             number_of_files,
             setdefaults: self.setdefaults,
             cleardefaults: self.cleardefaults
@@ -321,6 +336,7 @@ impl From<OptV2> for Opt {
             quality: value.quality,
             order: value.order,
             input_dir: None,
+            output_dir: None,
             number_of_files: value.number_of_files,
             setdefaults: value.setdefaults,
             cleardefaults: value.cleardefaults,

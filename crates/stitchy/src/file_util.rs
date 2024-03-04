@@ -14,29 +14,40 @@ pub fn to_absolute_dir(path_string: &String) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-pub fn next_available_output(sources: &ImageFiles<FilePathWithMetadata>, options: &Opt) -> Result<PathBuf, String> {
+pub fn next_available_output(
+    sources: &ImageFiles<FilePathWithMetadata>,
+    options: &Opt
+) -> Result<PathBuf, String> {
 
     let target_extension = ImageFiles::<FilePathWithMetadata>
         ::get_main_extension(determine_output_format(sources, options)?)
         .unwrap_or("jpg");
 
-    // Get current path, check if the default file name exists, if not return it
-    let mut current_path: PathBuf = match std::env::current_dir() {
-        Ok(dir) => dir,
-        Err(_) => return Err(String::from("Could not access current directory"))
+    let mut output_file_path: PathBuf = match &options.output_dir {
+        Some(output_path) => {
+            to_absolute_dir(output_path)?
+        },
+        None => {
+            match std::env::current_dir() {
+                Ok(dir) => dir,
+                Err(_) => return Err(String::from("Could not access current directory"))
+            }
+        }
     };
+
+    // Get current path, check if the default file name exists, if not return it
     let mut un_numbered_file_exists = false;
     for &extension in ImageFiles::<FilePathWithMetadata>::allowed_extensions().iter() {
-        current_path.push(format!("stitch.{}", extension));
-        if current_path.is_file() {
+        output_file_path.push(format!("stitch.{}", extension));
+        if output_file_path.is_file() {
             un_numbered_file_exists = true;
-            current_path.pop();
+            output_file_path.pop();
             break;
         }
-        current_path.pop();
+        output_file_path.pop();
     }
     if !un_numbered_file_exists {
-        let mut path = current_path.clone();
+        let mut path = output_file_path.clone();
         path.push(format!("stitch.{}", target_extension));
         return Ok(path);
     }
@@ -47,17 +58,17 @@ pub fn next_available_output(sources: &ImageFiles<FilePathWithMetadata>, options
         let mut numbered_file_exists = false;
         for &extension in ImageFiles::<FilePathWithMetadata>::allowed_extensions().iter() {
             let file_name: String = format!("stitch_{}.{}", i, extension);
-            current_path.push(file_name);
-            if current_path.is_file() {
+            output_file_path.push(file_name);
+            if output_file_path.is_file() {
                 numbered_file_exists = true;
             }
-            current_path.pop();
+            output_file_path.pop();
             if numbered_file_exists {
                 break;
             }
         }
         if !numbered_file_exists {
-            let mut path = current_path.clone();
+            let mut path = output_file_path.clone();
             path.push(format!("stitch_{}.{}", i, target_extension));
             return Ok(path);
         }
