@@ -1,4 +1,3 @@
-
 pub mod builder;
 pub mod pen;
 
@@ -6,9 +5,9 @@ pub mod pen;
 mod tests;
 
 use crate::{
-    StitchBuilder,
     image::{DynamicImage, GenericImage},
-    stitch::pen::{ImageRect, ImageGridPen, HorizontalGridPen, VerticalGridPen}
+    stitch::pen::{HorizontalGridPen, ImageGridPen, ImageRect, VerticalGridPen},
+    StitchBuilder,
 };
 
 /// Layout configuration for the stitched result.
@@ -27,14 +26,14 @@ pub enum AlignmentMode {
     #[default]
     Grid,
     Horizontal,
-    Vertical
+    Vertical,
 }
 
 /// An approximate aspect ratio class
 enum AspectType {
     Wide,
     Portrait,
-    Squarish
+    Squarish,
 }
 
 impl AspectType {
@@ -55,11 +54,10 @@ impl AspectType {
 pub struct Stitch {
     images: Vec<DynamicImage>,
     axis_pen: Box<dyn ImageGridPen>,
-    image_rects: Vec<ImageRect>
+    image_rects: Vec<ImageRect>,
 }
 
 impl Stitch {
-
     pub fn builder() -> StitchBuilder {
         StitchBuilder::default()
     }
@@ -68,27 +66,29 @@ impl Stitch {
         images: Vec<DynamicImage>,
         alignment: AlignmentMode,
         width_limit: u32,
-        height_limit: u32
+        height_limit: u32,
     ) -> Stitch {
-
         let mut axis_pen = Self::make_axis_pen(alignment, &images);
         let unscaled_image_rects = axis_pen.generate_output_rects(&images);
         let image_rects = match width_limit > 0 || height_limit > 0 {
             true => axis_pen.scale_image_rects(unscaled_image_rects, width_limit, height_limit),
-            false => unscaled_image_rects
+            false => unscaled_image_rects,
         };
 
         Stitch {
             images,
             axis_pen,
-            image_rects
+            image_rects,
         }
     }
 
     /// Creates a "pen" which draws images either horizontally or vertically as the primary axis.
     /// The pen draws in this direction until the images per line have been drawn, then moves to
     /// the next line.
-    fn make_axis_pen(alignment: AlignmentMode, images: &Vec<DynamicImage>) -> Box<dyn ImageGridPen> {
+    fn make_axis_pen(
+        alignment: AlignmentMode,
+        images: &Vec<DynamicImage>,
+    ) -> Box<dyn ImageGridPen> {
         let image_count = images.len();
 
         // Check for very particular alignment modes
@@ -119,13 +119,11 @@ impl Stitch {
         let mut portrait_count = 0;
         let mut squarish_count = 0;
         for img in images {
-            let aspect_type = AspectType::get_aspect_from_dims(
-                img.width(),
-                img.height());
+            let aspect_type = AspectType::get_aspect_from_dims(img.width(), img.height());
             match aspect_type {
                 AspectType::Wide => wide_count += 1,
                 AspectType::Portrait => portrait_count += 1,
-                AspectType::Squarish => squarish_count += 1
+                AspectType::Squarish => squarish_count += 1,
             }
         }
 
@@ -137,7 +135,7 @@ impl Stitch {
                 grid_size_main_axis,
                 grid_size_cross_axis,
                 main_lines_with_full_size,
-                smallest_height
+                smallest_height,
             );
             Box::new(pen)
         } else {
@@ -146,7 +144,7 @@ impl Stitch {
                 grid_size_main_axis,
                 grid_size_cross_axis,
                 main_lines_with_full_size,
-                smallest_width
+                smallest_width,
             );
             Box::new(pen)
         }
@@ -169,7 +167,6 @@ impl Stitch {
     }
 
     pub fn stitch(self) -> Result<DynamicImage, String> {
-
         // Determine output file dimensions
         let out_dimensions = self.axis_pen.get_output_dimensions();
 
@@ -178,8 +175,7 @@ impl Stitch {
         for i in 0..self.images.len() {
             let img = &self.images[i];
             let rect = &self.image_rects[i];
-            let scaled_image =
-                img.resize_exact(rect.w, rect.h, image::imageops::Lanczos3);
+            let scaled_image = img.resize_exact(rect.w, rect.h, image::imageops::Lanczos3);
             if let Err(err) = output_image.copy_from(&scaled_image, rect.x, rect.y) {
                 return Err(format!("{} error while copying file #{}", err, i));
             }

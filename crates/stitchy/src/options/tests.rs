@@ -1,5 +1,4 @@
-
-use crate::{Opt, TakeFrom, OrderBy};
+use crate::{Opt, OrderBy, TakeFrom};
 use stitchy_core::ImageFiles;
 
 const TEST_JSON: &str = "{ \
@@ -16,6 +15,8 @@ const TEST_JSON: &str = "{ \
         \"bmp\":false, \
         \"quality\":80, \
         \"order\":null, \
+        \"input_dir\":null, \
+        \"output_dir\":null, \
         \"number_of_files\":null \
         }";
 
@@ -36,12 +37,11 @@ fn clear_output() -> Result<(), String> {
     let mut test_file = current_path.clone();
     test_file.push("test.jpg");
     return if test_file.is_file() {
-        std::fs::remove_file(test_file.as_path()).map_err(
-            |e| format!("Previous test file exists but couldn't be removed: {}", e)
-        )
+        std::fs::remove_file(test_file.as_path())
+            .map_err(|e| format!("Previous test file exists but couldn't be removed: {}", e))
     } else {
         Ok(())
-    }
+    };
 }
 
 #[test]
@@ -92,8 +92,12 @@ fn default_quailty_is_100() {
 
 #[test]
 fn choosing_both_directions_gives_error() {
-    let error = Opt { horizontal: true, vertical: true, ..make_test_default() }
-        .check_for_basic_errors(&None);
+    let error = Opt {
+        horizontal: true,
+        vertical: true,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error.is_some());
 }
 
@@ -108,10 +112,25 @@ fn choosing_neither_direction_gives_no_error() {
 
 #[test]
 fn setting_general_and_specific_dimension_constraints_gives_error() {
-    let error_1 = Opt { maxd: 100, maxw: 100, ..make_test_default() }.check_for_basic_errors(&None);
-    let error_2 = Opt { maxd: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors(&None);
-    let error_3 = Opt { maxd: 100, maxw: 100, maxh: 100, ..make_test_default() }
-        .check_for_basic_errors(&None);
+    let error_1 = Opt {
+        maxd: 100,
+        maxw: 100,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_2 = Opt {
+        maxd: 100,
+        maxh: 100,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_3 = Opt {
+        maxd: 100,
+        maxw: 100,
+        maxh: 100,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
@@ -119,24 +138,55 @@ fn setting_general_and_specific_dimension_constraints_gives_error() {
 
 #[test]
 fn setting_both_specific_dimension_constraints_gives_no_error() {
-    let error = Opt { maxw: 100, maxh: 100, ..make_test_default() }.check_for_basic_errors(&None);
+    let error = Opt {
+        maxw: 100,
+        maxh: 100,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn setting_zero_dimension_constraints_gives_no_error() {
-    let error = Opt { maxd: 0, maxw: 0, maxh: 0, ..make_test_default() }
-        .check_for_basic_errors(&None);
+    let error = Opt {
+        maxd: 0,
+        maxw: 0,
+        maxh: 0,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn choosing_multiple_formats_gives_error() {
-    let error_1 = Opt { jpeg: true, png: true, ..make_test_default() }.check_for_basic_errors(&None);
-    let error_2 = Opt { png: true, gif: true, ..make_test_default() }.check_for_basic_errors(&None);
-    let error_3 = Opt { gif: true, bmp: true, ..make_test_default() }.check_for_basic_errors(&None);
-    let error_4 = Opt { jpeg: true, png: true, gif: true, bmp: true, ..make_test_default() }
-        .check_for_basic_errors(&None);
+    let error_1 = Opt {
+        jpeg: true,
+        png: true,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_2 = Opt {
+        png: true,
+        gif: true,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_3 = Opt {
+        gif: true,
+        bmp: true,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_4 = Opt {
+        jpeg: true,
+        png: true,
+        gif: true,
+        bmp: true,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
@@ -145,7 +195,9 @@ fn choosing_multiple_formats_gives_error() {
 
 #[test]
 fn choosing_no_format_gives_no_error() {
-    let opt = Opt { ..make_test_default() };
+    let opt = Opt {
+        ..make_test_default()
+    };
     assert_eq!(opt.jpeg, false);
     assert_eq!(opt.png, false);
     assert_eq!(opt.gif, false);
@@ -156,12 +208,24 @@ fn choosing_no_format_gives_no_error() {
 
 #[test]
 fn choosing_quality_for_non_jpeg_gives_error() {
-    let error_1 = Opt { png: true, quality: 50, ..make_test_default() }
-        .check_for_basic_errors(&None);
-    let error_2 = Opt { gif: true, quality: 50, ..make_test_default() }
-        .check_for_basic_errors(&None);
-    let error_3 = Opt { bmp: true, quality: 50, ..make_test_default() }
-        .check_for_basic_errors(&None);
+    let error_1 = Opt {
+        png: true,
+        quality: 50,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_2 = Opt {
+        gif: true,
+        quality: 50,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_3 = Opt {
+        bmp: true,
+        quality: 50,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
@@ -169,13 +233,23 @@ fn choosing_quality_for_non_jpeg_gives_error() {
 
 #[test]
 fn choosing_quality_for_jpeg_gives_no_error() {
-    let error = Opt { jpeg: true, quality: 50, ..make_test_default() }.check_for_basic_errors(&None);
+    let error = Opt {
+        jpeg: true,
+        quality: 50,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error.is_none());
 }
 
 #[test]
 fn choosing_silly_quality_gives_error() {
-    let error = Opt { jpeg: true, quality: 250, ..make_test_default() }.check_for_basic_errors(&None);
+    let error = Opt {
+        jpeg: true,
+        quality: 250,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error.is_some());
 }
 
@@ -353,14 +427,32 @@ fn mixin_preserves_original_enums() {
 
 #[test]
 fn mixin_preserves_some_number_of_files() {
-    let base = Opt { number_of_files: Some(5), ..Opt::default() };
-    let mixer = Opt { number_of_files: None, ..Opt::default() };
+    let base = Opt {
+        number_of_files: Some(5),
+        ..Opt::default()
+    };
+    let mixer = Opt {
+        number_of_files: None,
+        ..Opt::default()
+    };
     let merged_1 = base.mix_in(&mixer);
-    let base = Opt { number_of_files: None, ..Opt::default() };
-    let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
+    let base = Opt {
+        number_of_files: None,
+        ..Opt::default()
+    };
+    let mixer = Opt {
+        number_of_files: Some(7),
+        ..Opt::default()
+    };
     let merged_2 = base.mix_in(&mixer);
-    let base = Opt { number_of_files: None, ..Opt::default() };
-    let mixer = Opt { number_of_files: None, ..Opt::default() };
+    let base = Opt {
+        number_of_files: None,
+        ..Opt::default()
+    };
+    let mixer = Opt {
+        number_of_files: None,
+        ..Opt::default()
+    };
     let merged_3 = base.mix_in(&mixer);
     assert!(merged_1.number_of_files.is_some());
     assert!(merged_2.number_of_files.is_some());
@@ -369,8 +461,14 @@ fn mixin_preserves_some_number_of_files() {
 
 #[test]
 fn mixin_favours_original_number_of_files() {
-    let base = Opt { number_of_files: Some(5), ..Opt::default() };
-    let mixer = Opt { number_of_files: Some(7), ..Opt::default() };
+    let base = Opt {
+        number_of_files: Some(5),
+        ..Opt::default()
+    };
+    let mixer = Opt {
+        number_of_files: Some(7),
+        ..Opt::default()
+    };
     let merged_number = base.mix_in(&mixer).number_of_files.unwrap();
     assert_eq!(merged_number, 5);
 }
@@ -393,28 +491,43 @@ fn v1_options_does_deserialise() {
 
 #[test]
 fn mixin_quality_ignored_for_png_override() {
-
     // Clear existing file
     let clear_result = clear_output();
     assert!(
         clear_result.is_ok(),
-        "{}", clear_result.err().unwrap_or(String::new()));
+        "{}",
+        clear_result.err().unwrap_or(String::new())
+    );
 
     // Get files from test directory
     let retrieve_files_result = ImageFiles::builder()
-        .add_current_directory(vec!("..", "..", "images", "testing", "test_types")).unwrap()
+        .add_current_directory(vec!["..", "..", "images", "testing", "test_types"])
+        .unwrap()
         .build();
     assert!(
         retrieve_files_result.is_ok(),
-        "{}", retrieve_files_result.err().unwrap_or(String::new()));
+        "{}",
+        retrieve_files_result.err().unwrap_or(String::new())
+    );
 
     // Process files, generate output
     let retrieved_files = retrieve_files_result.unwrap();
-    let loaded_defaults = Opt { number_of_files: Some(1), jpeg: true, quality: 50, ..Opt::default() };
-    let options = Opt { number_of_files: Some(retrieved_files.file_count()), png: true, ..Opt::default() }
-        .mix_in(&loaded_defaults);
+    let loaded_defaults = Opt {
+        number_of_files: Some(1),
+        jpeg: true,
+        quality: 50,
+        ..Opt::default()
+    };
+    let options = Opt {
+        number_of_files: Some(retrieved_files.file_count()),
+        png: true,
+        ..Opt::default()
+    }
+    .mix_in(&loaded_defaults);
     let post_mix_error = options.check_for_basic_errors(&Some(loaded_defaults));
     assert!(
         post_mix_error.is_none(),
-        "{}", post_mix_error.unwrap_or(String::new()));
+        "{}",
+        post_mix_error.unwrap_or(String::new())
+    );
 }
