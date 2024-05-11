@@ -1,5 +1,5 @@
 
-### Unreleased
+### 0.1.7 (May 11, 2024)
 
 - Specify input directory (`--input-dir` or `-i`) or output directory (`--output-dir` or `-o`); both
   default to current working directory

@@ -1,6 +1,6 @@
 [package]
 name = "stitchy-core"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Thomas Reichert"]
 edition = "2021"
 license = "MIT"
@@ -12,7 +12,7 @@ categories = ["multimedia::images"]
 
 [dependencies]
 clap = { workspace = true, optional = true }
-image = { version = "0.24.5", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
+image = { version = "0.24.9", default-features = false, features = ["jpeg", "png", "gif", "bmp"] }
 serde = { version = "1.0.155", features = ["derive"], optional = true }
 serde_json = { version = "1.0.94", optional = true }
 

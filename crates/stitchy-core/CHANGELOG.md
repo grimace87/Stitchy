@@ -7,10 +7,11 @@
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Multi-threading support
 
-### Unreleased
+### 0.1.2 (May 11, 2024)
 
 - Fixed black lines sometimes appearing in the image due to imprecise downscaling
 - Fixed stitch sometimes failing due to incorrect output bounds after imprecise downscaling
+- Bumped image dependency to 0.24.9
 
 ### 0.1.1 (February 16, 2024)
 
