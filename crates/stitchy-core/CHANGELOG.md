@@ -7,6 +7,10 @@
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Multi-threading support
 
+### 0.1.3 (January 12, 2025)
+
+- Update image dependency to 0.25.5
+
 ### 0.1.2 (May 11, 2024)
 
 - Fixed black lines sometimes appearing in the image due to imprecise downscaling
