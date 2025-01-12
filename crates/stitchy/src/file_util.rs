@@ -1,7 +1,8 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFiles, FilePathWithMetadata, image::{ImageFormat, ImageOutputFormat, DynamicImage}};
+use stitchy_core::{ImageFiles, FilePathWithMetadata, image::{ImageFormat, DynamicImage, JpegEncoder}};
 use std::fs::File;
+use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
 pub fn to_absolute_dir(path_string: &String) -> Result<PathBuf, String> {
@@ -83,12 +84,16 @@ pub fn write_image_to_file(
     format: Option<ImageFormat>,
     quality: usize
 ) -> Result<(), String> {
-    let mut file_writer = File::create(file_path).unwrap();
-    let format = make_image_output_format(format, quality);
-    match image.write_to(&mut file_writer, format) {
-        Ok(()) => Ok(()),
-        Err(error) => Err(format!("Failed to generate output file - {}", error))
-    }
+    let mut file_writer = BufWriter::new(File::create(file_path).unwrap());
+    let result = match format {
+        None => JpegEncoder::new_with_quality(file_writer,100).encode_image(&image),
+        Some(ImageFormat::Jpeg) => { JpegEncoder::new_with_quality(file_writer, quality as u8).encode_image(&image) },
+        Some(ImageFormat::Png) => image.write_to(&mut file_writer, ImageFormat::Png),
+        Some(ImageFormat::Gif) => image.write_to(&mut file_writer, ImageFormat::Gif),
+        Some(ImageFormat::Bmp) => image.write_to(&mut file_writer, ImageFormat::Bmp),
+        Some(other_format) => { panic!("Internal error: found format {:?}", other_format) },
+    };
+    result.map_err(|e| format!("Failed to generate output file - {}", e))
 }
 
 pub fn size_of_file(file_path: &Path) -> Result<u64, String> {
@@ -133,15 +138,4 @@ pub fn determine_output_format(
     };
 
     Ok(image_format)
-}
-
-fn make_image_output_format(format: Option<ImageFormat>, quality: usize) -> ImageOutputFormat {
-    match format {
-        Some(ImageFormat::Jpeg) => ImageOutputFormat::Jpeg(quality as u8),
-        Some(ImageFormat::Png) => ImageOutputFormat::Png,
-        Some(ImageFormat::Gif) => ImageOutputFormat::Gif,
-        Some(ImageFormat::Bmp) => ImageOutputFormat::Bmp,
-        Some(other_format) => { panic!("Internal error: found format {:?}", other_format) },
-        None => ImageOutputFormat::Jpeg(100u8)
-    }
 }
