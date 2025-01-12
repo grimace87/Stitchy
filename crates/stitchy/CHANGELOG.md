@@ -1,4 +1,8 @@
 
+### 0.1.8 (January 13, 2025)
+
+- Updated image dependency to 0.25.5
+
 ### 0.1.7 (May 11, 2024)
 
 - Specify input directory (`--input-dir` or `-i`) or output directory (`--output-dir` or `-o`); both
