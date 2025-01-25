@@ -3,9 +3,12 @@
 
 - Handle rotation data from smartphone photos
 - Manual control over grid layout
-- Add support for WebP (and maybe more formats)
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Multi-threading support
+
+### Unreleased
+
+- Support WebP (lossless only)
 
 ### 0.1.3 (January 12, 2025)
 

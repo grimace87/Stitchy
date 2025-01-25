@@ -1,4 +1,9 @@
 
+### Unreleased
+
+- Support WebP (lossless only)
+- Output for `--help` now wraps text nicely for varying terminal size
+
 ### 0.1.8 (January 13, 2025)
 
 - Updated image dependency to 0.25.5
