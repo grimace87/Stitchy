@@ -91,6 +91,7 @@ pub fn write_image_to_file(
         Some(ImageFormat::Png) => image.write_to(&mut file_writer, ImageFormat::Png),
         Some(ImageFormat::Gif) => image.write_to(&mut file_writer, ImageFormat::Gif),
         Some(ImageFormat::Bmp) => image.write_to(&mut file_writer, ImageFormat::Bmp),
+        Some(ImageFormat::WebP) => image.write_to(&mut file_writer, ImageFormat::WebP),
         Some(other_format) => { panic!("Internal error: found format {:?}", other_format) },
     };
     result.map_err(|e| format!("Failed to generate output file - {}", e))

@@ -55,7 +55,7 @@ impl<P, L> ImageFilesBuilder<P, L>
     }
 
     /// Checks if a file has an extension matching any in a given set
-    fn extension_in_list(extension: &str, accepted_extensions: &[&str; 5]) -> bool {
+    fn extension_in_list(extension: &str, accepted_extensions: &[&str; 6]) -> bool {
         accepted_extensions.contains(&extension)
     }
 }

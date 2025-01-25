@@ -100,11 +100,12 @@ pub fn help() {
         "  --maxh=n          Limit output height to n pixels at most".to_owned(),
         "  --maxd=n          Limit output width and height to n pixels at most".to_owned(),
         "  --reverse, -r     Reverse order of files, after sorting and taking from start or end".to_owned(),
-        "  --quality=n       Set the output quality from 1 to 100, defaults to 100".to_owned(),
+        "  --quality=n       Set the output quality from 1 to 100, defaulting to 100; applies to JPEG only".to_owned(),
         "  --jpeg            Output as JPEG".to_owned(),
         "  --png             Output as PNG".to_owned(),
         "  --gif             Output as GIF".to_owned(),
         "  --bmp             Output as BMP".to_owned(),
+        "  --webp            Output as WebP (lossless only)".to_owned(),
         "                    Note: default format matches sources, or JPEG if source formats vary".to_owned(),
     ]);
     printer.print_with_wrap_indent(

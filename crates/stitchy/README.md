@@ -48,8 +48,9 @@ Run `stitchy --help` to see a list of these flags.
 ## Configuration
 
 For the full list of configuration options, run `stitchy --help`. Some options are:
-- Set the desired output format using `--png`, `--jpeg`, `--gif` or `--bmp`; for JPEG a
-  quality option (0 to 100) can be passed like `--quality=___`
+- Set the desired output format using `--png`, `--jpeg`, `--gif`, `--bmp`, or `--webp`; for
+  JPEG a quality option (0 to 100) can be passed like `--quality=___`, and for WebP only
+  lossless is supported
 - Set a limit on one output dimension using `--maxh=___` or `--maxw=___`, or both using
   `--maxd=___`
 

@@ -55,6 +55,9 @@ pub fn test_output_formats() {
             Some(ImageFormat::Bmp) => Opt {
                 number_of_files: Some(all_files_count), bmp: true, ..Opt::default()
             },
+            Some(ImageFormat::WebP) => Opt {
+                number_of_files: Some(all_files_count), webp: true, ..Opt::default()
+            },
             Some(ImageFormat::Gif) => Opt {
                 number_of_files: Some(all_files_count), gif: true, ..Opt::default()
             },

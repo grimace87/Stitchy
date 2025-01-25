@@ -34,6 +34,7 @@ impl FileProperties for OwnedRawFdProperties {
             "image/png" => Some(ImageFormat::Png),
             "image/gif" => Some(ImageFormat::Gif),
             "image/bmp" => Some(ImageFormat::Bmp),
+            "image/webp" => Some(ImageFormat::WebP),
             _ => None
         }
     }

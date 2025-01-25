@@ -13,6 +13,7 @@ const TEST_JSON: &str = "{ \
         \"png\":false, \
         \"gif\":false, \
         \"bmp\":false, \
+        \"webp\":false, \
         \"quality\":80, \
         \"order\":null, \
         \"input_dir\":null, \
@@ -180,10 +181,17 @@ fn choosing_multiple_formats_gives_error() {
     }
     .check_for_basic_errors(&None);
     let error_4 = Opt {
+        png: true,
+        webp: true,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
+    let error_5 = Opt {
         jpeg: true,
         png: true,
         gif: true,
         bmp: true,
+        webp: true,
         ..make_test_default()
     }
     .check_for_basic_errors(&None);
@@ -191,6 +199,7 @@ fn choosing_multiple_formats_gives_error() {
     assert!(error_2.is_some());
     assert!(error_3.is_some());
     assert!(error_4.is_some());
+    assert!(error_5.is_some());
 }
 
 #[test]
@@ -202,6 +211,7 @@ fn choosing_no_format_gives_no_error() {
     assert_eq!(opt.png, false);
     assert_eq!(opt.gif, false);
     assert_eq!(opt.bmp, false);
+    assert_eq!(opt.webp, false);
     let error = opt.check_for_basic_errors(&None);
     assert!(error.is_none());
 }
@@ -226,9 +236,16 @@ fn choosing_quality_for_non_jpeg_gives_error() {
         ..make_test_default()
     }
     .check_for_basic_errors(&None);
+    let error_4 = Opt {
+        webp: true,
+        quality: 50,
+        ..make_test_default()
+    }
+    .check_for_basic_errors(&None);
     assert!(error_1.is_some());
     assert!(error_2.is_some());
     assert!(error_3.is_some());
+    assert!(error_4.is_some());
 }
 
 #[test]
@@ -282,6 +299,7 @@ fn base_options_favoured_in_classes() {
     assert_eq!(merged.png, true);
     assert_eq!(merged.gif, false);
     assert_eq!(merged.bmp, false);
+    assert_eq!(merged.webp, false);
     assert_eq!(merged.order, Some(OrderBy::Latest));
     assert_eq!(merged.take_from, Some(TakeFrom::End));
 }
@@ -296,6 +314,7 @@ fn mixin_preserves_mixer_booleans() {
         png: true,
         gif: true,
         bmp: true,
+        webp: true,
         ..Opt::default()
     };
     let merged = Opt::default().mix_in(&mixer);
@@ -306,6 +325,7 @@ fn mixin_preserves_mixer_booleans() {
     assert!(merged.png);
     assert!(merged.gif);
     assert!(merged.bmp);
+    assert!(merged.webp);
 }
 
 #[test]
@@ -318,6 +338,7 @@ fn mixin_preserves_original_booleans() {
         png: true,
         gif: true,
         bmp: true,
+        webp: true,
         ..Opt::default()
     };
     let merged = base.mix_in(&Opt::default());
@@ -328,6 +349,7 @@ fn mixin_preserves_original_booleans() {
     assert!(merged.png);
     assert!(merged.gif);
     assert!(merged.bmp);
+    assert!(merged.webp);
 }
 
 #[test]
@@ -483,8 +505,8 @@ fn bad_json_does_not_deserialise() {
 #[test]
 fn v1_options_does_deserialise() {
     let test_str = "{\"horizontal\":true,\"vertical\":false,\"maxd\":0,\"maxw\":0,\"maxh\":0\
-        ,\"reverse\":false,\"jpeg\":false,\"png\":true,\"gif\":false,\"bmp\":false,\"quality\":100\
-        ,\"ascalpha\":true,\"descalpha\":false,\"number_of_files\":null}";
+        ,\"reverse\":false,\"jpeg\":false,\"png\":true,\"gif\":false,\"bmp\":false,\"webp\":false,
+        \"quality\":100,\"ascalpha\":true,\"descalpha\":false,\"number_of_files\":null}";
     let options = Opt::deserialise_as_current(test_str);
     assert!(options.is_some());
 }

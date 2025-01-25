@@ -27,12 +27,13 @@ pub fn make_size_string(length_bytes: u64) -> String {
 }
 
 /// Mappings of known file extensions to their image format
-pub fn extension_formats() -> [(&'static str, ImageFormat); 5] {
+pub fn extension_formats() -> [(&'static str, ImageFormat); 6] {
     [
         (".jpg", ImageFormat::Jpeg),
         (".jpeg", ImageFormat::Jpeg),
         (".png", ImageFormat::Png),
         (".gif", ImageFormat::Gif),
-        (".bmp", ImageFormat::Bmp)
+        (".bmp", ImageFormat::Bmp),
+        (".webp", ImageFormat::WebP)
     ]
 }

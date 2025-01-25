@@ -54,6 +54,9 @@ pub struct Opt {
     #[arg(long)]
     pub bmp: bool,
 
+    #[arg(long)]
+    pub webp: bool,
+
     #[arg(long, default_value="100")]
     pub quality: usize,
 
@@ -96,6 +99,7 @@ impl Default for Opt {
             png: false,
             gif: false,
             bmp: false,
+            webp: false,
             quality: DEFAULT_QUALITY,
             order: None,
             input_dir: None,
@@ -178,12 +182,12 @@ impl Opt {
         }
 
         // Choose one format only, or none at all
-        let format_flag_set: [bool; 4] = [self.jpeg, self.png, self.gif, self.bmp];
+        let format_flag_set: [bool; 5] = [self.jpeg, self.png, self.gif, self.bmp, self.webp];
         let format_flag_count: usize = format_flag_set.iter()
             .map(|&f| { if f { 1 } else { 0 } })
             .sum();
         if format_flag_count > 1 {
-            return Some("You cannot specify more than one of image types JPEG, PNG, GIF and BMP.".to_owned());
+            return Some("You cannot specify more than one of image types JPEG, PNG, GIF, BMP, and WebP.".to_owned());
         }
 
         // Verify quality setting is within the appropriate range, and is only used for JPEG.
@@ -235,6 +239,8 @@ impl Opt {
             Some(ImageFormat::Gif)
         } else if self.bmp {
             Some(ImageFormat::Bmp)
+        } else if self.webp {
+            Some(ImageFormat::WebP)
         } else {
             None
         }
@@ -272,7 +278,7 @@ impl Opt {
             (this, _) => this
         };
         let base_has_axis = self.horizontal || self.vertical;
-        let base_has_format = self.jpeg || self.png || self.gif || self.bmp;
+        let base_has_format = self.jpeg || self.png || self.gif || self.bmp || self.webp;
         let base_constrains_dimensions = self.maxd != 0 || self.maxw != 0 || self.maxh != 0;
         let order = match (self.order, other.order) {
             (None, that) => that,
@@ -303,6 +309,7 @@ impl Opt {
             png: self.png || (other.png && !base_has_format),
             gif: self.gif || (other.gif && !base_has_format),
             bmp: self.bmp || (other.bmp && !base_has_format),
+            webp: self.webp || (other.webp && !base_has_format),
             quality: if self.quality != DEFAULT_QUALITY { self.quality } else { other.quality },
             order,
             input_dir,
@@ -333,6 +340,7 @@ impl From<OptV2> for Opt {
             png: value.png,
             gif: value.gif,
             bmp: value.bmp,
+            webp: false,
             quality: value.quality,
             order: value.order,
             input_dir: None,

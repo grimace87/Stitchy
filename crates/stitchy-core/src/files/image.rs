@@ -31,8 +31,8 @@ impl<P: FileProperties> ImageFiles<P> {
     /// These match image formats that can be processed by this crate. Adding individual files
     /// with other extensions will fail, and files with other extensions will be ignored if adding
     /// whole directories.
-    pub fn allowed_extensions() -> [&'static str; 5] {
-        ["jpg", "jpeg", "png", "gif", "bmp"]
+    pub fn allowed_extensions() -> [&'static str; 6] {
+        ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
     }
 
     /// Get the "main" extension used by a format.
@@ -45,6 +45,7 @@ impl<P: FileProperties> ImageFiles<P> {
             ImageFormat::Png => Some("png"),
             ImageFormat::Gif => Some("gif"),
             ImageFormat::Bmp => Some("bmp"),
+            ImageFormat::WebP => Some("webp"),
             _ => None
         }
     }
