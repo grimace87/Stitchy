@@ -1,5 +1,5 @@
 use crate::enums::{OrderBy, TakeFrom};
-use crate::files::image::ImageFiles;
+use crate::files::image_types::ImageFiles;
 use crate::stitch::Stitch;
 use crate::AlignmentMode;
 use crate::FilePathWithMetadata;
@@ -245,6 +245,38 @@ pub fn test_output_dimensions() {
     // Assert dimensions
     assert_eq!(process_result.width(), 1591);
     assert_eq!(process_result.height(), 2160);
+}
+
+#[test]
+pub fn test_rotated_files() {
+    // Clear existing file
+    let clear_result = clear_output();
+    assert!(
+        clear_result.is_ok(),
+        "{}",
+        clear_result.err().unwrap_or(String::new())
+    );
+
+    // Stitch 4 files, each with different orientation metadata but being the same
+    // image in the same orientation when orientation metadata is applied
+    let image_files = ImageFiles::builder()
+        .add_current_directory(vec!["..", "..", "images", "testing", "test_rotation"])
+        .unwrap()
+        .build()
+        .unwrap()
+        .sort_and_truncate_by(4, OrderBy::Latest, TakeFrom::Start, false)
+        .unwrap()
+        .into_image_contents(true)
+        .unwrap();
+    let process_result = Stitch::builder()
+        .images(image_files)
+        .alignment(AlignmentMode::Horizontal)
+        .stitch()
+        .unwrap();
+
+    // Assert dimensions
+    assert_eq!(process_result.width(), 1280);
+    assert_eq!(process_result.height(), 240);
 }
 
 #[test]

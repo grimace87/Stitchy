@@ -45,19 +45,18 @@ pub use enums::{OrderBy, TakeFrom};
 
 /// Types used for loading files and passing them into the image stitching process
 pub use files::{
-    FileLocation,
-    FileProperties,
     builder::ImageFilesBuilder,
-    image::ImageFiles,
+    image_types::ImageFiles,
     path::{FilePath, FilePathWithMetadata},
-    util::extension_formats
+    util::extension_formats,
+    FileLocation, FileProperties,
 };
 
 #[cfg(unix)]
 pub use files::fd::{OwnedRawFdLocation, OwnedRawFdProperties};
 
 /// Type used for running the image stitching process
-pub use stitch::{Stitch, AlignmentMode, builder::StitchBuilder};
+pub use stitch::{builder::StitchBuilder, AlignmentMode, Stitch};
 
 /// File utilities, used by the CLI crate
 pub mod util {
@@ -66,5 +65,8 @@ pub mod util {
 
 /// Re-exports from the [image](https://crates.io/crates/image) crate
 pub mod image {
-    pub use image::{DynamicImage, GenericImage, ImageError, ImageFormat, codecs::jpeg::JpegEncoder};
+    pub use image::{
+        codecs::jpeg::JpegEncoder, metadata::Orientation, DynamicImage, GenericImage, ImageDecoder,
+        ImageError, ImageFormat,
+    };
 }

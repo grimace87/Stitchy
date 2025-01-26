@@ -127,7 +127,9 @@ impl<P: FileProperties> ImageFiles<P> {
     pub fn into_image_contents(self, print_info: bool) -> Result<Vec<DynamicImage>, String> {
         let mut images = Vec::with_capacity(self.file_list.len());
         for file in self.file_list {
-            let image = file.into_image_contents(print_info)?;
+            let orientation = file.orientation()?;
+            let mut image = file.into_image_contents(print_info)?;
+            image.apply_orientation(orientation);
             images.push(image);
         }
 

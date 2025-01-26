@@ -2,6 +2,7 @@
 ### Unreleased
 
 - Support WebP (lossless only)
+- Images with orientation metadata will now be correctly oriented (JPEG and WebP)
 - Output for `--help` now wraps text nicely for varying terminal size
 
 ### 0.1.8 (January 13, 2025)

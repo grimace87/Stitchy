@@ -1,6 +1,5 @@
-
 use crate::{FileLocation, FileProperties};
-use image::{DynamicImage, ImageFormat};
+use image::{metadata::Orientation, DynamicImage, ImageFormat};
 use std::fs::File;
 use std::io::Read;
 use std::os::fd::{FromRawFd, RawFd};
@@ -17,7 +16,7 @@ pub struct OwnedRawFdProperties {
     file: File,
     mime_type: String,
     modify_time: SystemTime,
-    size_bytes: u64
+    size_bytes: u64,
 }
 
 impl OwnedRawFdProperties {
@@ -27,7 +26,6 @@ impl OwnedRawFdProperties {
 }
 
 impl FileProperties for OwnedRawFdProperties {
-
     fn infer_format(&self) -> Option<ImageFormat> {
         match self.mime_type.as_str() {
             "image/jpeg" => Some(ImageFormat::Jpeg),
@@ -35,7 +33,7 @@ impl FileProperties for OwnedRawFdProperties {
             "image/gif" => Some(ImageFormat::Gif),
             "image/bmp" => Some(ImageFormat::Bmp),
             "image/webp" => Some(ImageFormat::WebP),
-            _ => None
+            _ => None,
         }
     }
 
@@ -52,7 +50,10 @@ impl FileProperties for OwnedRawFdProperties {
             let h = image.height();
             println!(
                 "w: {}, h: {}, {}",
-                w, h, crate::util::make_size_string(self.size_bytes));
+                w,
+                h,
+                crate::util::make_size_string(self.size_bytes)
+            );
         }
 
         Ok(image)
@@ -72,6 +73,11 @@ impl FileProperties for OwnedRawFdProperties {
     fn full_path(&self) -> Option<&String> {
         None
     }
+
+    #[inline]
+    fn orientation(&self) -> Result<Orientation, String> {
+        self.decode_orientation(&self.file)
+    }
 }
 
 /// Wrapper for a file's location by a raw file descriptor. This owns the file descriptor now, and the file will be
@@ -80,20 +86,25 @@ impl FileProperties for OwnedRawFdProperties {
 pub struct OwnedRawFdLocation {
     fd: RawFd,
     file: File,
-    mime_type: String
+    mime_type: String,
 }
 
 impl OwnedRawFdLocation {
     pub fn new(fd: RawFd, mime_type: String) -> Self {
         let file = unsafe { File::from_raw_fd(fd) };
-        Self { fd, file, mime_type }
+        Self {
+            fd,
+            file,
+            mime_type,
+        }
     }
 }
 
 impl FileLocation<OwnedRawFdProperties> for OwnedRawFdLocation {
-
     fn is_file(&self) -> Result<bool, String> {
-        let metadata = self.file.metadata()
+        let metadata = self
+            .file
+            .metadata()
             .map_err(|_| "Could not open metadata for file descriptor".to_owned())?;
         Ok(metadata.is_file())
     }
@@ -101,7 +112,7 @@ impl FileLocation<OwnedRawFdProperties> for OwnedRawFdLocation {
     fn extension(&self) -> Result<String, String> {
         let extension_index = match self.mime_type.find("/") {
             Some(i) => i + 1,
-            None => return Err(format!("Could not parse MIME type: {}", self.mime_type))
+            None => return Err(format!("Could not parse MIME type: {}", self.mime_type)),
         };
         if extension_index >= self.mime_type.len() - 1 {
             return Err(format!("Invalid MIME type: {}", self.mime_type));
@@ -110,9 +121,9 @@ impl FileLocation<OwnedRawFdProperties> for OwnedRawFdLocation {
     }
 
     fn into_properties(self) -> Result<OwnedRawFdProperties, String> {
-
         // Get file size and modify date from its metadata
-        let metadata = self.file
+        let metadata = self
+            .file
             .metadata()
             .map_err(|e| format!("Failed reading metadata: {:?}", e))?;
         let modify_time = metadata
@@ -126,7 +137,7 @@ impl FileLocation<OwnedRawFdProperties> for OwnedRawFdLocation {
             file: self.file,
             mime_type: self.mime_type,
             modify_time,
-            size_bytes
+            size_bytes,
         };
         Ok(properties)
     }
