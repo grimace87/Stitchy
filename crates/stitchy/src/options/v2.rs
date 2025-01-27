@@ -100,7 +100,6 @@ impl Default for Opt {
 }
 
 impl Opt {
-
     pub fn deserialise(json: &str) -> Option<Opt> {
         let result = serde_json::from_str(json);
         match result {
