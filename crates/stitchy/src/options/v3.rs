@@ -57,6 +57,9 @@ pub struct Opt {
     #[arg(long)]
     pub webp: bool,
 
+    #[arg(long)]
+    pub fast: bool,
+
     #[arg(long, default_value="100")]
     pub quality: usize,
 
@@ -100,6 +103,7 @@ impl Default for Opt {
             gif: false,
             bmp: false,
             webp: false,
+            fast: false,
             quality: DEFAULT_QUALITY,
             order: None,
             input_dir: None,
@@ -310,6 +314,7 @@ impl Opt {
             gif: self.gif || (other.gif && !base_has_format),
             bmp: self.bmp || (other.bmp && !base_has_format),
             webp: self.webp || (other.webp && !base_has_format),
+            fast: self.fast || other.fast,
             quality: if self.quality != DEFAULT_QUALITY { self.quality } else { other.quality },
             order,
             input_dir,
@@ -341,6 +346,7 @@ impl From<OptV2> for Opt {
             gif: value.gif,
             bmp: value.bmp,
             webp: false,
+            fast: false,
             quality: value.quality,
             order: value.order,
             input_dir: None,

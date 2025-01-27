@@ -66,7 +66,7 @@ pub mod util {
 /// Re-exports from the [image](https://crates.io/crates/image) crate
 pub mod image {
     pub use image::{
-        codecs::jpeg::JpegEncoder, metadata::Orientation, DynamicImage, GenericImage, ImageDecoder,
+        codecs::jpeg::JpegEncoder, imageops::FilterType, metadata::Orientation, DynamicImage, GenericImage, ImageDecoder,
         ImageError, ImageFormat,
     };
 }

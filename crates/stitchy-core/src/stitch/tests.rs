@@ -1,5 +1,6 @@
 use crate::enums::{OrderBy, TakeFrom};
 use crate::files::image_types::ImageFiles;
+use crate::image::FilterType;
 use crate::stitch::Stitch;
 use crate::AlignmentMode;
 use crate::FilePathWithMetadata;
@@ -8,7 +9,7 @@ fn create_stitch(image_count: usize, alignment: AlignmentMode) -> Stitch {
     let images: Vec<image::DynamicImage> = (0..image_count)
         .map(|_| image::DynamicImage::new_rgba8(1, 1))
         .collect();
-    Stitch::new(images, alignment, 0, 0)
+    Stitch::new(images, alignment, 0, 0, FilterType::Lanczos3)
 }
 
 fn clear_output() -> Result<(), String> {
@@ -302,14 +303,17 @@ pub fn test_file_counts() {
             retrieve_files_result.err().unwrap_or(String::new())
         );
 
-        // Process files, generate outputiam
+        // Process files, generate output
         let image_files = retrieve_files_result
             .unwrap()
             .sort_and_truncate_by(i, OrderBy::Latest, TakeFrom::Start, false)
             .unwrap()
             .into_image_contents(false)
             .unwrap();
-        let process_result = Stitch::builder().images(image_files).stitch();
+        let process_result = Stitch::builder()
+            .resize_filter(FilterType::Nearest)
+            .images(image_files)
+            .stitch();
         assert!(
             process_result.is_ok(),
             "{}",

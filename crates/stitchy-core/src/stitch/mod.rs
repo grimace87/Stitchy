@@ -5,7 +5,7 @@ pub mod pen;
 mod tests;
 
 use crate::{
-    image::{DynamicImage, GenericImage},
+    image::{DynamicImage, GenericImage, FilterType},
     stitch::pen::{HorizontalGridPen, ImageGridPen, ImageRect, VerticalGridPen},
     StitchBuilder,
 };
@@ -55,6 +55,7 @@ pub struct Stitch {
     images: Vec<DynamicImage>,
     axis_pen: Box<dyn ImageGridPen>,
     image_rects: Vec<ImageRect>,
+    resize_filter: FilterType
 }
 
 impl Stitch {
@@ -67,6 +68,7 @@ impl Stitch {
         alignment: AlignmentMode,
         width_limit: u32,
         height_limit: u32,
+        resize_filter: FilterType
     ) -> Stitch {
         let mut axis_pen = Self::make_axis_pen(alignment, &images);
         let unscaled_image_rects = axis_pen.generate_output_rects(&images);
@@ -79,6 +81,7 @@ impl Stitch {
             images,
             axis_pen,
             image_rects,
+            resize_filter
         }
     }
 
@@ -172,10 +175,11 @@ impl Stitch {
 
         // Create the image and paint individual images
         let mut output_image = DynamicImage::new_rgba8(out_dimensions.w, out_dimensions.h);
+        let resize_filter = self.resize_filter.clone();
         for i in 0..self.images.len() {
             let img = &self.images[i];
             let rect = &self.image_rects[i];
-            let scaled_image = img.resize_exact(rect.w, rect.h, image::imageops::Lanczos3);
+            let scaled_image = img.resize_exact(rect.w, rect.h, resize_filter);
             if let Err(err) = output_image.copy_from(&scaled_image, rect.x, rect.y) {
                 return Err(format!("{} error while copying file #{}", err, i));
             }

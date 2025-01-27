@@ -6,12 +6,14 @@ mod profiles;
 #[cfg(test)]
 mod tests;
 
-use options::Opt;
-use stitchy_core::{Stitch, ImageFiles, FilePathWithMetadata, OrderBy, TakeFrom, util::make_size_string};
 use clap::Parser;
+use options::Opt;
+use stitchy_core::{
+    image::FilterType, util::make_size_string, FilePathWithMetadata, ImageFiles, OrderBy, Stitch,
+    TakeFrom,
+};
 
 fn main() {
-
     // Get command line args, check for flags that merely print to the console and exit
     let mut opt = Opt::parse();
     if opt.help {
@@ -70,17 +72,17 @@ fn main() {
     // Call function to do all the file processing, print final messages here
     match run_with_options(opt) {
         Ok(msg) => println!("{}", msg),
-        Err(msg) => println!("{}", msg)
+        Err(msg) => println!("{}", msg),
     }
 }
 
 /// Runs Stitchy using the supplied options. The options should have been checked for basic errors
 /// and prepared for use before calling this function.
 fn run_with_options(opt: Opt) -> Result<String, String> {
-
     // Determine the list of files to use as input
-    let number_of_files = opt.number_of_files.ok_or_else(|| String::from(
-        "Internal error - sorting files before verifying that a number was supplied"))?;
+    let number_of_files = opt.number_of_files.ok_or_else(|| {
+        String::from("Internal error - sorting files before verifying that a number was supplied")
+    })?;
     let unsorted_sources = match &opt.input_dir {
         Some(source_path) => {
             let dir = file_util::to_absolute_dir(source_path)?;
@@ -88,19 +90,16 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
                 .add_directory(dir)?
                 .build()?
         }
-        None => {
-            ImageFiles::<FilePathWithMetadata>::builder()
-                .add_current_directory(vec![])?
-                .build()?
-        }
+        None => ImageFiles::<FilePathWithMetadata>::builder()
+            .add_current_directory(vec![])?
+            .build()?,
     };
-    let image_sources = unsorted_sources
-        .sort_and_truncate_by(
-            number_of_files,
-            opt.order.unwrap_or(OrderBy::Latest),
-            opt.take_from.unwrap_or(TakeFrom::Start),
-            opt.reverse
-        )?;
+    let image_sources = unsorted_sources.sort_and_truncate_by(
+        number_of_files,
+        opt.order.unwrap_or(OrderBy::Latest),
+        opt.take_from.unwrap_or(TakeFrom::Start),
+        opt.reverse,
+    )?;
 
     // Determine the output path, considering the input files if need be
     let total_source_size = image_sources.total_size();
@@ -109,26 +108,28 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
 
     // Open the image files and process them to make the output image
     let images = image_sources.into_image_contents(true)?;
+    let resize_mode = match opt.fast {
+        true => FilterType::Nearest,
+        false => FilterType::Lanczos3,
+    };
     let output = Stitch::builder()
         .images(images)
         .alignment(opt.get_alignment())
         .width_limit(opt.maxw as u32)
         .height_limit(opt.maxh as u32)
+        .resize_filter(resize_mode)
         .stitch()?;
 
     // Write the output file, returning a success message or an error message
     file_util::write_image_to_file(output, &output_file_path, Some(output_format), opt.quality)?;
     let output_string = match file_util::size_of_file(&output_file_path) {
-        Ok(size_bytes) =>
-            format!(
-                "Created file: {:?}, {}, ({})",
-                output_file_path.file_name().unwrap(),
-                make_size_string(size_bytes),
-                file_util::make_ratio_string(total_source_size, size_bytes)),
-        Err(_) =>
-            format!(
-                "Created file: {:?}",
-                output_file_path.file_name().unwrap())
+        Ok(size_bytes) => format!(
+            "Created file: {:?}, {}, ({})",
+            output_file_path.file_name().unwrap(),
+            make_size_string(size_bytes),
+            file_util::make_ratio_string(total_source_size, size_bytes)
+        ),
+        Err(_) => format!("Created file: {:?}", output_file_path.file_name().unwrap()),
     };
     Ok(output_string)
 }

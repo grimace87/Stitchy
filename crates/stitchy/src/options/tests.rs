@@ -14,6 +14,7 @@ const TEST_JSON: &str = "{ \
         \"gif\":false, \
         \"bmp\":false, \
         \"webp\":false, \
+        \"fast\":false, \
         \"quality\":80, \
         \"order\":null, \
         \"input_dir\":null, \
@@ -51,6 +52,7 @@ fn deserializes_okay() {
         horizontal: true,
         maxw: 120,
         jpeg: true,
+        fast: false,
         quality: 80,
         number_of_files: None,
         ..Opt::default()
@@ -67,6 +69,7 @@ fn serializes_okay() {
         horizontal: true,
         maxw: 120,
         jpeg: true,
+        fast: false,
         quality: 80,
         number_of_files: None,
         ..Opt::default()
