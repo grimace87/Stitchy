@@ -73,12 +73,16 @@ pub struct Opt {
     pub output_dir: Option<String>,
 
     #[arg(required_unless_present_any =
-    &["help", "version", "setdefaults", "cleardefaults", "printdefaults"])]
+    &["help", "version", "setdefaults", "updatedefaults", "cleardefaults", "printdefaults"])]
     pub number_of_files: Option<usize>,
 
     #[arg(long)]
     #[serde(skip_serializing, default)]
     pub setdefaults: bool,
+
+    #[arg(long)]
+    #[serde(skip_serializing, default)]
+    pub updatedefaults: bool,
 
     #[arg(long)]
     #[serde(skip_serializing, default)]
@@ -110,6 +114,7 @@ impl Default for Opt {
             output_dir: None,
             number_of_files: None,
             setdefaults: false,
+            updatedefaults: false,
             cleardefaults: false
         }
     }
@@ -326,6 +331,7 @@ impl Opt {
             output_dir,
             number_of_files,
             setdefaults: self.setdefaults,
+            updatedefaults: self.updatedefaults,
             cleardefaults: self.cleardefaults
         }
     }
@@ -358,6 +364,7 @@ impl From<OptV3> for Opt {
             output_dir: None,
             number_of_files: value.number_of_files,
             setdefaults: value.setdefaults,
+            updatedefaults: false,
             cleardefaults: value.cleardefaults,
         }
     }

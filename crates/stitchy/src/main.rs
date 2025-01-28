@@ -29,7 +29,7 @@ fn main() {
         return;
     }
 
-    // Save options if requested, or try to load stored options otherwise
+    // Modify options if requested, or try to load stored options otherwise
     let mut previous_options: Option<Opt> = None;
     if opt.setdefaults {
         if let Some(error) = opt.check_for_basic_errors(&None) {
@@ -38,6 +38,29 @@ fn main() {
         }
         if let Some(json) = opt.serialise() {
             profiles::Profile::main().write_string(json);
+        }
+    } else if opt.updatedefaults {
+        if let Some(error) = opt.check_for_basic_errors(&None) {
+            println!("Cannot update settings. {}", error);
+            return;
+        }
+        if let Some(json) = profiles::Profile::main().into_string() {
+            if let Some(previous) = Opt::deserialise_as_current(&json) {
+                opt = opt.mix_in(&previous);
+                if let Some(error) = opt.check_for_basic_errors(&None) {
+                    println!("{}", error);
+                    return;
+                }
+                if let Some(json) = opt.serialise() {
+                    profiles::Profile::main().write_string(json);
+                }
+            } else {
+                println!("Previous settings could not be successfully read.");
+                return;
+            }
+        } else {
+            println!("Existing settings could not be found.");
+            return;
         }
     } else if opt.cleardefaults {
         profiles::Profile::main().delete();
@@ -50,7 +73,7 @@ fn main() {
 
     // Check conditions where the user did not request a number of files, but this is allowed
     // because some operations on the defaults file does not require that files are processed now
-    if opt.number_of_files.is_none() && (opt.setdefaults || opt.cleardefaults) {
+    if opt.number_of_files.is_none() && (opt.setdefaults || opt.cleardefaults || opt.updatedefaults) {
         return;
     }
 
