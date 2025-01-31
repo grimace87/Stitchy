@@ -15,7 +15,7 @@ use stitchy_core::{
 
 fn main() {
     // Get command line args, check for flags that merely print to the console and exit
-    let mut opt = Opt::parse();
+    let opt = Opt::parse();
     if opt.help {
         print::help();
         return;
@@ -30,56 +30,21 @@ fn main() {
     }
 
     // Modify options if requested, or try to load stored options otherwise
-    let mut previous_options: Option<Opt> = None;
-    if opt.setdefaults {
-        if let Some(error) = opt.check_for_basic_errors(&None) {
-            println!("Cannot save settings. {}", error);
+    let mut opt = match process_defaults_and_prepare_opt(opt) {
+        Ok(None) => {
             return;
         }
-        if let Some(json) = opt.serialise() {
-            profiles::Profile::main().write_string(json);
-        }
-    } else if opt.updatedefaults {
-        if let Some(error) = opt.check_for_basic_errors(&None) {
-            println!("Cannot update settings. {}", error);
+        Ok(Some(opt)) => opt,
+        Err(error) => {
+            println!("{}", error);
             return;
         }
-        if let Some(json) = profiles::Profile::main().into_string() {
-            if let Some(previous) = Opt::deserialise_as_current(&json) {
-                opt = opt.mix_in(&previous);
-                if let Some(error) = opt.check_for_basic_errors(&None) {
-                    println!("{}", error);
-                    return;
-                }
-                if let Some(json) = opt.serialise() {
-                    profiles::Profile::main().write_string(json);
-                }
-            } else {
-                println!("Previous settings could not be successfully read.");
-                return;
-            }
-        } else {
-            println!("Existing settings could not be found.");
-            return;
-        }
-    } else if opt.cleardefaults {
-        profiles::Profile::main().delete();
-    } else if let Some(json) = profiles::Profile::main().into_string() {
-        if let Some(profile_opt) = Opt::deserialise_as_current(&json) {
-            opt = opt.mix_in(&profile_opt);
-            previous_options = Some(profile_opt);
-        }
-    }
+    };
 
     // Check conditions where the user did not request a number of files, but this is allowed
     // because some operations on the defaults file does not require that files are processed now
-    if opt.number_of_files.is_none() && (opt.setdefaults || opt.cleardefaults || opt.updatedefaults) {
-        return;
-    }
-
-    // Perform simple validation
-    if let Some(error) = opt.check_for_basic_errors(&previous_options) {
-        println!("{}", error);
+    if opt.number_of_files.is_none() && (opt.setdefaults || opt.cleardefaults || opt.updatedefaults)
+    {
         return;
     }
 
@@ -155,4 +120,75 @@ fn run_with_options(opt: Opt) -> Result<String, String> {
         Err(_) => format!("Created file: {:?}", output_file_path.file_name().unwrap()),
     };
     Ok(output_string)
+}
+
+/// Checks for flags setdefaults, updatedefaults, and cleardefaults, and handles
+/// those. Returns any errors encountered or an Opt to proceed with afterwards.
+///
+/// None returned suggests to return now without proceeding with a stitch
+/// operation, which could happen if modifying settings without a number of images
+/// being provided.
+fn process_defaults_and_prepare_opt(provided_opt: Opt) -> Result<Option<Opt>, String> {
+    let mut opt = provided_opt;
+    let mut previous_options: Option<Opt> = None;
+
+    if opt.setdefaults {
+        if let Some(error) = opt.check_for_basic_errors(&None) {
+            return Err(format!("Cannot save settings. {}", error));
+        }
+        return match opt.serialise() {
+            Some(json) => {
+                profiles::Profile::main().write_string(json);
+                return match opt.number_of_files.is_some() {
+                    true => Ok(Some(opt)),
+                    false => Ok(None),
+                };
+            }
+            None => Err("Settings could not be serialised.".to_owned()),
+        };
+    }
+
+    if opt.updatedefaults {
+        if let Some(error) = opt.check_for_basic_errors(&None) {
+            return Err(format!("Cannot update settings. {}", error));
+        }
+        let Some(json) = profiles::Profile::main().into_string() else {
+            return Err("Existing settings could not be found.".to_owned());
+        };
+        let Some(previous) = Opt::deserialise_as_current(&json) else {
+            return Err("Previous settings could not be successfully read.".to_owned());
+        };
+        opt = opt.mix_in(&previous);
+        if let Some(error) = opt.check_for_basic_errors(&None) {
+            return Err(error);
+        }
+        if let Some(json) = opt.serialise() {
+            profiles::Profile::main().write_string(json);
+        }
+        return match opt.number_of_files.is_some() {
+            true => Ok(Some(opt)),
+            false => Ok(None),
+        };
+    }
+
+    if opt.cleardefaults {
+        profiles::Profile::main().delete();
+        return match opt.number_of_files.is_some() {
+            true => Ok(Some(opt)),
+            false => Ok(None),
+        };
+    }
+
+    if let Some(json) = profiles::Profile::main().into_string() {
+        if let Some(profile_opt) = Opt::deserialise_as_current(&json) {
+            opt = opt.mix_in(&profile_opt);
+            previous_options = Some(profile_opt);
+        }
+    }
+
+    if let Some(error) = opt.check_for_basic_errors(&previous_options) {
+        return Err(error);
+    }
+
+    Ok(Some(opt))
 }
