@@ -136,6 +136,16 @@ impl Opt {
         ["JPEG"]
     }
 
+    #[inline]
+    fn supports_small_mode(&self) -> bool {
+        self.png || self.gif
+    }
+
+    #[inline]
+    fn names_of_formats_supporting_small_mode() -> [&'static str; 2] {
+        ["PNG", "GIF"]
+    }
+
     pub fn deserialise(json: &str) -> Option<Opt> {
         let result = serde_json::from_str(json);
         match result {
@@ -222,6 +232,18 @@ impl Opt {
         if targeting_quality && !self.supports_quality() && !defaults_support_quality {
             return Some(
                 format!("The quality setting can only be used for {} output.", quality_types[0]));
+        }
+
+        // Verify small mode is only used for formats supporting it
+        let small_types = Self::names_of_formats_supporting_small_mode();
+        let targeting_small_mode = self.small && format_flag_count > 0;
+        let defaults_support_small_mode = match previous_options {
+            Some(options) => options.supports_small_mode(),
+            None => false
+        };
+        if targeting_small_mode && !self.supports_small_mode() && !defaults_support_small_mode {
+            return Some(
+                format!("The small setting can only be used for {} or {} output.", small_types[0], small_types[1]));
         }
 
         None
