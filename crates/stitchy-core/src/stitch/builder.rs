@@ -16,7 +16,7 @@ pub struct StitchBuilder {
     pub(crate) alignment: AlignmentMode,
     pub(crate) width_limit: u32,
     pub(crate) height_limit: u32,
-    pub(crate) resize_filter: FilterType,
+    pub(crate) resize_filter: FilterType
 }
 
 impl Default for StitchBuilder {
@@ -26,7 +26,7 @@ impl Default for StitchBuilder {
             alignment: AlignmentMode::default(),
             width_limit: 0,
             height_limit: 0,
-            resize_filter: FilterType::Lanczos3,
+            resize_filter: FilterType::Lanczos3
         }
     }
 }

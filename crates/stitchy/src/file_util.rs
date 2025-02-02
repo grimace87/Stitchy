@@ -1,6 +1,6 @@
 
 use crate::Opt;
-use stitchy_core::{ImageFiles, FilePathWithMetadata, image::{ImageFormat, DynamicImage, JpegEncoder}};
+use stitchy_core::{ImageFiles, FilePathWithMetadata, image::{GifEncoder, Frame, ImageFormat, DynamicImage, JpegEncoder, PngCompressionType, PngEncoder, PngFilterType}};
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
@@ -82,14 +82,29 @@ pub fn write_image_to_file(
     image: DynamicImage,
     file_path: &Path,
     format: Option<ImageFormat>,
-    quality: usize
+    quality: usize,
+    encode_smallest: bool
 ) -> Result<(), String> {
     let mut file_writer = BufWriter::new(File::create(file_path).unwrap());
     let result = match format {
-        None => JpegEncoder::new_with_quality(file_writer,100).encode_image(&image),
+        None => JpegEncoder::new_with_quality(file_writer, 100).encode_image(&image),
         Some(ImageFormat::Jpeg) => { JpegEncoder::new_with_quality(file_writer, quality as u8).encode_image(&image) },
-        Some(ImageFormat::Png) => image.write_to(&mut file_writer, ImageFormat::Png),
-        Some(ImageFormat::Gif) => image.write_to(&mut file_writer, ImageFormat::Gif),
+        Some(ImageFormat::Png) => {
+            let mode = match encode_smallest {
+                true => PngCompressionType::Best,
+                false => PngCompressionType::Fast
+            };
+            let encoder = PngEncoder::new_with_quality(file_writer, mode, PngFilterType::default());
+            image.write_with_encoder(encoder)
+        },
+        Some(ImageFormat::Gif) => {
+            let speed = match encode_smallest {
+                true => 1,
+                false => 10
+            };
+            let mut encoder = GifEncoder::new_with_speed(file_writer, speed);
+            encoder.encode_frame(Frame::new(image.to_rgba8()))
+        },
         Some(ImageFormat::Bmp) => image.write_to(&mut file_writer, ImageFormat::Bmp),
         Some(ImageFormat::WebP) => image.write_to(&mut file_writer, ImageFormat::WebP),
         Some(other_format) => { panic!("Internal error: found format {:?}", other_format) },
