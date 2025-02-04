@@ -23,6 +23,15 @@ That's it! The binary will be built from source and then become available in a c
 If you installed Cargo with default settings, binaries will be in the `.cargo/bin` directory
 inside your home directory, which will be available on your PATH.
 
+### Windows
+
+The installer may prompt you to install Visual Studio, since Rust requires a C/C++ compiler
+and linker to be installed. The easiest way to set this up on Windows is to download the latest
+version of Visual Studio, which can also be installed ahead of time, along with the components
+for "Desktop Development with C++" which can be selected in the Visual Studio Installer.
+
+For more information, see [https://rust-lang.github.io/rustup/installation/windows-msvc.html](MSVC prerequisites).
+
 ### NetBSD
 
 If you are using NetBSD, `stitchy` is available from the official repositories. To install the
