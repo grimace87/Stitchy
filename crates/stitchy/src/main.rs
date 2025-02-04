@@ -155,9 +155,7 @@ fn process_defaults_and_prepare_opt(provided_opt: Opt) -> Result<Option<Opt>, St
         let Some(json) = profiles::Profile::main().into_string() else {
             return Err("Existing settings could not be found.".to_owned());
         };
-        let Some(previous) = Opt::deserialise_as_current(&json) else {
-            return Err("Previous settings could not be successfully read.".to_owned());
-        };
+        let previous = Opt::deserialise_as_current(&json)?;
         opt = opt.mix_in(&previous);
         if let Some(error) = opt.check_for_basic_errors(&None) {
             return Err(error);
@@ -180,9 +178,14 @@ fn process_defaults_and_prepare_opt(provided_opt: Opt) -> Result<Option<Opt>, St
     }
 
     if let Some(json) = profiles::Profile::main().into_string() {
-        if let Some(profile_opt) = Opt::deserialise_as_current(&json) {
-            opt = opt.mix_in(&profile_opt);
-            previous_options = Some(profile_opt);
+        match Opt::deserialise_as_current(&json) {
+            Ok(profile_opt) => {
+                opt = opt.mix_in(&profile_opt);
+                previous_options = Some(profile_opt);
+            }
+            Err(err) => {
+                println!("Settings exist in {} but could not be parsed: {}", profiles::PROFILE_FILE_NAME, err);
+            }
         }
     }
 

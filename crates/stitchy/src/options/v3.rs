@@ -106,15 +106,9 @@ impl Default for Opt {
 }
 
 impl Opt {
-    pub fn deserialise(json: &str) -> Option<Opt> {
-        let result = serde_json::from_str(json);
-        match result {
-            Ok(o) => o,
-            Err(e) => {
-                println!("Error deserialising settings: {:?}", e);
-                None
-            }
-        }
+    pub fn deserialise(json: &str) -> Result<Opt, String> {
+        serde_json::from_str(json)
+            .map_err(|e| format!("Error deserialising settings: {:?}", e))
     }
 }
 

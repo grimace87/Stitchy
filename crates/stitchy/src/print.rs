@@ -142,12 +142,8 @@ pub fn defaults() {
     }
 
     let json = load_attempt.unwrap();
-    let serialise_result = Opt::deserialise(&json);
-    if serialise_result.is_none() {
-        println!(
-            "Failed to parse {} for the current user.",
-            PROFILE_FILE_NAME
-        );
+    if let Err(err) = Opt::deserialise(&json) {
+        println!("{}", err);
         return;
     }
 

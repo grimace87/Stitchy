@@ -146,40 +146,30 @@ impl Opt {
         ["PNG", "GIF"]
     }
 
-    pub fn deserialise(json: &str) -> Option<Opt> {
-        let result = serde_json::from_str(json);
-        match result {
-            Ok(o) => o,
-            Err(e) => {
-                println!("Error deserialising settings: {:?}", e);
-                None
-            }
-        }
+    pub fn deserialise(json: &str) -> Result<Opt, String> {
+        serde_json::from_str(json)
+            .map_err(|e| format!("Error deserialising settings: {:?}", e))
     }
 
-    pub fn deserialise_as_current(json: &str) -> Option<Opt> {
+    pub fn deserialise_as_current(json: &str) -> Result<Opt, String> {
 
         // Try latest version
-        if let Some(opt) = Opt::deserialise(json) {
-            return Some(opt);
-        }
+        if let Ok(opt) = Opt::deserialise(json) {
+            return Ok(opt);
+        };
 
         // Try v3
-        if let Some(opt) = OptV3::deserialise(json) {
-            return Some(opt.into());
+        if let Ok(opt) = OptV3::deserialise(json) {
+            return Ok(opt.into());
         }
 
         // Try v2
-        if let Some(opt) = OptV2::deserialise(json) {
-            return Some(opt.into());
+        if let Ok(opt) = OptV2::deserialise(json) {
+            return Ok(opt.into());
         }
 
         // Try v1
-        if let Some(opt) = OptV1::deserialise(json) {
-            return Some(opt.into());
-        }
-
-        None
+        OptV1::deserialise(json).map(|opt| opt.into())
     }
 
     pub fn check_for_basic_errors(&self, previous_options: &Option<Opt>) -> Option<String> {
