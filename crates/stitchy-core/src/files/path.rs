@@ -44,7 +44,7 @@ impl FileProperties for FilePathWithMetadata {
 
     fn into_image_contents(self, print_info: bool) -> Result<DynamicImage, String> {
         let path = Path::new(&self.full_path);
-        let image = image::open(path).map_err(|_| format!("Failed to open: {:?}", path))?;
+        let image = image::open(path).map_err(|e| format!("Failed to open {:?}: {:?}", path, e))?;
 
         if print_info {
             if let Some(file_name) = path.file_name() {
