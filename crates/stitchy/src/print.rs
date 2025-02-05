@@ -142,7 +142,7 @@ pub fn defaults() {
     }
 
     let json = load_attempt.unwrap();
-    if let Err(err) = Opt::deserialise(&json) {
+    if let Err(err) = Opt::deserialise_as_current(&json) {
         println!("{}", err);
         return;
     }
