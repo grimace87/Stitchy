@@ -57,13 +57,13 @@ pub struct Opt {
     #[arg(long)]
     pub webp: bool,
 
-    #[arg(long)]
+    #[arg(long, short)]
     pub fast: bool,
 
-    #[arg(long)]
+    #[arg(long, short)]
     pub small: bool,
 
-    #[arg(long, default_value="100")]
+    #[arg(long, short, default_value="100")]
     pub quality: usize,
 
     #[arg(long)]

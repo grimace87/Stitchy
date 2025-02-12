@@ -7,6 +7,7 @@
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
 - Add 'small mode' that encodes the smallest file possible (at the expense of speed);
   applies only to PNG and GIF
+- Add shorthand for --quality as -q
 
 ### 0.1.8 (January 13, 2025)
 
