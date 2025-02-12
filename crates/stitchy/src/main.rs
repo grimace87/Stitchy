@@ -136,7 +136,12 @@ fn process_defaults_and_prepare_opt(provided_opt: Opt) -> Result<Option<Opt>, St
         if let Some(error) = opt.check_for_basic_errors(&None) {
             return Err(format!("Cannot save settings. {}", error));
         }
-        return match opt.serialise() {
+        if opt.number_of_files.is_some() {
+            println!("The number of files cannot be saved in defaults and will be ignored.");
+        }
+        let mut opt_copy = opt.clone();
+        opt_copy.number_of_files = None;
+        return match opt_copy.serialise() {
             Some(json) => {
                 profiles::Profile::main().write_string(json);
                 return match opt.number_of_files.is_some() {
@@ -152,6 +157,9 @@ fn process_defaults_and_prepare_opt(provided_opt: Opt) -> Result<Option<Opt>, St
         if let Some(error) = opt.check_for_basic_errors(&None) {
             return Err(format!("Cannot update settings. {}", error));
         }
+        if opt.number_of_files.is_some() {
+            println!("The number of files cannot be saved in defaults and will be ignored.");
+        }
         let Some(json) = profiles::Profile::main().into_string() else {
             return Err("Existing settings could not be found.".to_owned());
         };
@@ -160,7 +168,9 @@ fn process_defaults_and_prepare_opt(provided_opt: Opt) -> Result<Option<Opt>, St
         if let Some(error) = opt.check_for_basic_errors(&None) {
             return Err(error);
         }
-        if let Some(json) = opt.serialise() {
+        let mut opt_copy = opt.clone();
+        opt_copy.number_of_files = None;
+        if let Some(json) = opt_copy.serialise() {
             profiles::Profile::main().write_string(json);
         }
         return match opt.number_of_files.is_some() {

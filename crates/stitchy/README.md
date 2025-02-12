@@ -68,9 +68,8 @@ For the full list of configuration options, run `stitchy --help`. Some options a
 Defaults can be saved to a file `.stitchyrc` in your home directory. Whenever you run `stitchy`,
 these defaults are applied, unless you override them in the current command.
 
-- Save default options using the flag `--setdefaults` and the options you want to save - though
-  do not pass a number of images - and a stitch operation will not take place but rather the
-  defaults file will be written using the other arguments supplied
+- Save default options using the flag `--setdefaults` and the options you want to save (if a
+  number of images is provided it will not be saved in settings, ut the stitch will continue)
 - Clear the defaults by running `stitchy --cleardefaults`
 - Check the current defaults by running `stitchy --printdefaults`; this has the same effect as
   printing the contents of the `.stitchyrc` file to the terminal.

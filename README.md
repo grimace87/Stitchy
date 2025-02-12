@@ -6,7 +6,7 @@ interface. The core component is the `stitchy-core` crate written in the Rust la
 applications are also available for the command line and as an Android app.
 
 Configuration options include:
-- Output format, supporting PNG, JPEG and more
+- Output format, supporting PNG, JPEG, WebP, and more
 - Alignment of input images in the output
 - Output image size limits
 
