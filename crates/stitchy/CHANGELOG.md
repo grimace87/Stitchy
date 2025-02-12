@@ -1,5 +1,5 @@
 
-### Unreleased
+### 0.1.9 (February 13, 2025)
 
 - Support WebP (lossless only)
 - Images with orientation metadata will now be correctly oriented (JPEG and WebP)
