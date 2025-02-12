@@ -96,12 +96,12 @@ impl Stitch {
 
         // Check for very particular alignment modes
         if alignment == AlignmentMode::Horizontal {
-            let smallest_height = Self::find_smallest_image_height(&images);
+            let smallest_height = Self::find_smallest_image_height(images);
             let pen = HorizontalGridPen::new(image_count, 1, 1, smallest_height);
             return Box::new(pen);
         }
         if alignment == AlignmentMode::Vertical {
-            let smallest_width = Self::find_smallest_image_width(&images);
+            let smallest_width = Self::find_smallest_image_width(images);
             let pen = VerticalGridPen::new(image_count, 1, 1, smallest_width);
             return Box::new(pen);
         }
@@ -133,7 +133,7 @@ impl Stitch {
         // Choose a drawing direction based on aspect ratios
         let draw_horizontal = portrait_count > wide_count || squarish_count >= wide_count;
         if draw_horizontal {
-            let smallest_height = Self::find_smallest_image_height(&images);
+            let smallest_height = Self::find_smallest_image_height(images);
             let pen = HorizontalGridPen::new(
                 grid_size_main_axis,
                 grid_size_cross_axis,
@@ -142,7 +142,7 @@ impl Stitch {
             );
             Box::new(pen)
         } else {
-            let smallest_width = Self::find_smallest_image_width(&images);
+            let smallest_width = Self::find_smallest_image_width(images);
             let pen = VerticalGridPen::new(
                 grid_size_main_axis,
                 grid_size_cross_axis,
@@ -175,11 +175,10 @@ impl Stitch {
 
         // Create the image and paint individual images
         let mut output_image = DynamicImage::new_rgba8(out_dimensions.w, out_dimensions.h);
-        let resize_filter = self.resize_filter.clone();
         for i in 0..self.images.len() {
             let img = &self.images[i];
             let rect = &self.image_rects[i];
-            let scaled_image = img.resize_exact(rect.w, rect.h, resize_filter);
+            let scaled_image = img.resize_exact(rect.w, rect.h, self.resize_filter);
             if let Err(err) = output_image.copy_from(&scaled_image, rect.x, rect.y) {
                 return Err(format!("{} error while copying file #{}", err, i));
             }

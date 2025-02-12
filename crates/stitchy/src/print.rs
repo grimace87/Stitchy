@@ -8,7 +8,7 @@ struct SplitPrinter {
 impl Default for SplitPrinter {
     fn default() -> Self {
         let available_width =
-            termsize::get().map_or_else(|| std::usize::MAX, |size| size.cols as usize);
+            termsize::get().map_or_else(|| usize::MAX, |size| size.cols as usize);
         Self { available_width }
     }
 }
@@ -35,8 +35,8 @@ impl SplitPrinter {
         let print_width = self.available_width - wrap_indent;
 
         let length_of_first_line = text[0..self.available_width]
-            .rfind(|c| c == ' ')
-            .unwrap_or_else(|| self.available_width);
+            .rfind(' ')
+            .unwrap_or(self.available_width);
         let (first_line, remaining) = text.split_at(length_of_first_line);
         println!("{}", first_line);
 
@@ -46,7 +46,7 @@ impl SplitPrinter {
             let after_width = current_line.chars().count() + word.chars().count();
             if after_width <= print_width {
                 current_line.push_str(word);
-                if after_width + 1 <= print_width {
+                if after_width < print_width {
                     current_line.push(' ');
                 }
             } else {

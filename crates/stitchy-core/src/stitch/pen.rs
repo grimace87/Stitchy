@@ -33,7 +33,7 @@ pub(crate) trait ImageGridPen {
     fn get_lines_at_full_size(&self) -> usize;
 
     fn get_output_dimensions(&self) -> ImageSize;
-    fn generate_output_rects(&mut self, images: &Vec<DynamicImage>) -> Vec<ImageRect>;
+    fn generate_output_rects(&mut self, images: &[DynamicImage]) -> Vec<ImageRect>;
     fn scale_image_rects(
         &mut self,
         image_rects: Vec<ImageRect>,
@@ -91,7 +91,7 @@ impl ImageGridPen for HorizontalGridPen {
         )
     }
 
-    fn generate_output_rects(&mut self, images: &Vec<DynamicImage>) -> Vec<ImageRect> {
+    fn generate_output_rects(&mut self, images: &[DynamicImage]) -> Vec<ImageRect> {
         let mut image_rects: Vec<ImageRect> = vec![];
         let mut pen_x: u32 = 0;
         let mut pen_y: u32 = 0;
@@ -137,21 +137,16 @@ impl ImageGridPen for HorizontalGridPen {
         width_limit: u32,
         height_limit: u32,
     ) -> Vec<ImageRect> {
-        let total_width: u32;
-        let allowed_width: u32;
-        let total_height: u32;
-        let allowed_height: u32;
-
-        total_width = self.longest_line_length_pixels;
-        allowed_width = if width_limit == 0 {
+        let total_width = self.longest_line_length_pixels;
+        let allowed_width = if width_limit == 0 {
             total_width
         } else {
             min(total_width, width_limit)
         };
 
         // Height is cross axis
-        total_height = (self.line_count as u32) * self.line_size_pixels;
-        allowed_height = if height_limit == 0 {
+        let total_height = (self.line_count as u32) * self.line_size_pixels;
+        let allowed_height = if height_limit == 0 {
             total_height
         } else {
             min(total_height, height_limit)
@@ -261,7 +256,7 @@ impl ImageGridPen for VerticalGridPen {
         )
     }
 
-    fn generate_output_rects(&mut self, images: &Vec<DynamicImage>) -> Vec<ImageRect> {
+    fn generate_output_rects(&mut self, images: &[DynamicImage]) -> Vec<ImageRect> {
         let mut image_rects: Vec<ImageRect> = vec![];
         let mut pen_x: u32 = 0;
         let mut pen_y: u32 = 0;
@@ -307,21 +302,16 @@ impl ImageGridPen for VerticalGridPen {
         width_limit: u32,
         height_limit: u32,
     ) -> Vec<ImageRect> {
-        let total_width: u32;
-        let allowed_width: u32;
-        let total_height: u32;
-        let allowed_height: u32;
-
-        total_height = self.longest_line_length_pixels;
-        allowed_height = if height_limit == 0 {
+        let total_height = self.longest_line_length_pixels;
+        let allowed_height = if height_limit == 0 {
             total_height
         } else {
             min(total_height, height_limit)
         };
 
         // Width is cross axis
-        total_width = (self.line_count as u32) * self.line_size_pixels;
-        allowed_width = if width_limit == 0 {
+        let total_width = (self.line_count as u32) * self.line_size_pixels;
+        let allowed_width = if width_limit == 0 {
             total_width
         } else {
             min(total_width, width_limit)

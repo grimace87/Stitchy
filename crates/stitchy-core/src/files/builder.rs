@@ -19,7 +19,7 @@ impl<P: FileProperties, L: FileLocation<P>> Default for ImageFilesBuilder<P, L> 
     fn default() -> Self {
         Self {
             file_list: vec![],
-            phantom: PhantomData::default()
+            phantom: PhantomData
         }
     }
 }
