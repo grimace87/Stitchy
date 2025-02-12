@@ -104,7 +104,7 @@ pub fn test_output_formats() {
             .stitch()
             .unwrap();
         let process_result =
-            crate::file_util::write_image_to_file(stitch, &output_path, format, 100);
+            crate::file_util::write_image_to_file(stitch, &output_path, format, 100, false);
         assert!(
             process_result.is_ok(),
             "{}",

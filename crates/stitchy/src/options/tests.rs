@@ -60,7 +60,7 @@ fn deserializes_okay() {
         ..Opt::default()
     };
     let result = Opt::deserialise(TEST_JSON);
-    assert!(result.is_some());
+    assert!(result.is_ok());
     let opt = result.unwrap();
     assert_eq!(format!("{:?}", expected), format!("{:?}", opt));
 }
@@ -505,7 +505,7 @@ fn mixin_favours_original_number_of_files() {
 fn bad_json_does_not_deserialise() {
     let test_str = "{\"name\":\"Options\"}";
     let options = Opt::deserialise_as_current(test_str);
-    assert!(options.is_none());
+    assert!(options.is_err());
 }
 
 #[test]
@@ -514,7 +514,7 @@ fn v1_options_does_deserialise() {
         ,\"reverse\":false,\"jpeg\":false,\"png\":true,\"gif\":false,\"bmp\":false,\"webp\":false,
         \"quality\":100,\"ascalpha\":true,\"descalpha\":false,\"number_of_files\":null}";
     let options = Opt::deserialise_as_current(test_str);
-    assert!(options.is_some());
+    assert!(options.is_ok());
 }
 
 #[test]
