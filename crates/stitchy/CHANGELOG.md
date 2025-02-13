@@ -8,6 +8,7 @@
 - Add 'small mode' that encodes the smallest file possible (at the expense of speed);
   applies only to PNG and GIF
 - Add shorthand for --quality as -q
+- Fixed an issue that sometimes caused the stitch to fail
 
 ### 0.1.8 (January 13, 2025)
 

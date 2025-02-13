@@ -30,7 +30,7 @@ and linker to be installed. The easiest way to set this up on Windows is to down
 version of Visual Studio, which can also be installed ahead of time, along with the components
 for "Desktop Development with C++" which can be selected in the Visual Studio Installer.
 
-For more information, see [https://rust-lang.github.io/rustup/installation/windows-msvc.html](MSVC prerequisites).
+For more information, see [MSVC prerequisites](https://rust-lang.github.io/rustup/installation/windows-msvc.html).
 
 ### NetBSD
 
@@ -73,3 +73,4 @@ these defaults are applied, unless you override them in the current command.
 - Clear the defaults by running `stitchy --cleardefaults`
 - Check the current defaults by running `stitchy --printdefaults`; this has the same effect as
   printing the contents of the `.stitchyrc` file to the terminal.
+

@@ -4,6 +4,7 @@
 - Support WebP (lossless only)
 - Images with orientation metadata will now be correctly oriented (JPEG and WebP)
 - Add 'fast mode' that uses nearest-neighbour filtering during image copy operations
+- Fixed an issue that sometimes caused the stitch to fail
 
 ### 0.1.3 (January 12, 2025)
 
