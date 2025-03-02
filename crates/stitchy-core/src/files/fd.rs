@@ -43,7 +43,7 @@ impl FileProperties for OwnedRawFdProperties {
             .read_to_end(&mut image_buffer)
             .map_err(|e| format!("Failed to read input file: {:?}", e))?;
         let image = image::load_from_memory(&image_buffer)
-            .map_err(|_| format!("Failed to open from file descriptor: {}", self.fd))?;
+            .map_err(|e| format!("Failed to open file descriptor {}: {:?}", self.fd, e))?;
 
         if print_info {
             let w = image.width();
