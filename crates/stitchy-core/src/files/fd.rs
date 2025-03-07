@@ -1,7 +1,7 @@
 use crate::{FileLocation, FileProperties};
 use image::{metadata::Orientation, DynamicImage, ImageFormat};
 use std::fs::File;
-use std::io::Read;
+use std::io::{BufReader, Read};
 use std::os::fd::{FromRawFd, RawFd};
 use std::time::SystemTime;
 
@@ -76,7 +76,8 @@ impl FileProperties for OwnedRawFdProperties {
 
     #[inline]
     fn orientation(&self) -> Result<Orientation, String> {
-        self.decode_orientation(&self.file)
+        let reader = BufReader::new(&self.file);
+        self.decode_orientation(reader)
     }
 }
 

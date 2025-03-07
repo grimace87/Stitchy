@@ -48,6 +48,7 @@ pub use files::{
     builder::ImageFilesBuilder,
     image_types::ImageFiles,
     path::{FilePath, FilePathWithMetadata},
+    raw::{RawBufferLocation, RawBufferProperties},
     util::extension_formats,
     FileLocation, FileProperties,
 };

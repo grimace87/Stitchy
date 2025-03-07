@@ -18,3 +18,4 @@ serde_json = { version = "1.0.94", optional = true }
 
 [features]
 parser = ["dep:clap", "dep:serde", "dep:serde_json"]
+

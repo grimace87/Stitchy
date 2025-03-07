@@ -5,6 +5,7 @@ pub mod fd;
 
 pub mod image_types;
 pub mod path;
+pub mod raw;
 pub mod util;
 
 use image::{
@@ -12,8 +13,7 @@ use image::{
     metadata::Orientation,
     DynamicImage, ImageDecoder, ImageError, ImageFormat,
 };
-use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufRead, Seek};
 use std::time::SystemTime;
 
 /// Representation of a file's location.
@@ -34,7 +34,7 @@ pub trait FileProperties {
     fn full_path(&self) -> Option<&String>;
     fn orientation(&self) -> Result<Orientation, String>;
 
-    fn decode_orientation(&self, file: &File) -> Result<Orientation, String> {
+    fn decode_orientation<R: BufRead + Seek>(&self, source: R) -> Result<Orientation, String> {
         let format = match self.infer_format() {
             Some(format) => format,
             None => {
@@ -46,14 +46,13 @@ pub trait FileProperties {
             Some(string) => string.as_str(),
             None => "(path unknown)",
         };
-        let reader = BufReader::new(file);
 
         match format {
             ImageFormat::Jpeg => {
-                Self::decode_orientation_from_codec(full_path_label, JpegDecoder::new(reader))
+                Self::decode_orientation_from_codec(full_path_label, JpegDecoder::new(source))
             }
             ImageFormat::WebP => {
-                Self::decode_orientation_from_codec(full_path_label, WebPDecoder::new(reader))
+                Self::decode_orientation_from_codec(full_path_label, WebPDecoder::new(source))
             }
             _ => Ok(Orientation::NoTransforms),
         }

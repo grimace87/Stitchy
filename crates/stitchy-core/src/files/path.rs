@@ -3,6 +3,7 @@ use image::{metadata::Orientation, DynamicImage, ImageFormat};
 
 use std::ffi::OsStr;
 use std::fs::File;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
@@ -81,7 +82,8 @@ impl FileProperties for FilePathWithMetadata {
     fn orientation(&self) -> Result<Orientation, String> {
         let file = File::open(&self.full_path)
             .map_err(|e| format!("Cannot open file {}: {:?}", &self.full_path, e))?;
-        self.decode_orientation(&file)
+        let reader = BufReader::new(file);
+        self.decode_orientation(reader)
     }
 }
 
