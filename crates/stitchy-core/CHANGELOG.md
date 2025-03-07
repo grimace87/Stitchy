@@ -1,4 +1,8 @@
 
+### 0.1.5 (March 8, 2025)
+
+- Added types `RawBufferLocation` and `RawBufferProperties` for working with raw byte slices
+
 ### 0.1.4 (February 13, 2025)
 
 - Support WebP (lossless only)
