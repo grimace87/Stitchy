@@ -288,7 +288,7 @@ checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
 
 [[package]]
 name = "stitchy"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "clap",
  "home",
@@ -300,7 +300,7 @@ dependencies = [
 
 [[package]]
 name = "stitchy-core"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "clap",
  "image",
