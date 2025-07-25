@@ -13,6 +13,10 @@ and the output is returned as an `image::DynamicImage`, which is re-exported fro
 See the [root project overview](https://github.com/grimace87/Stitchy) for an
 overview of the Stitchy ecosystem.
 
+## Minimum Supported Rist Version (MSRV)
+
+Requires Rust version 1.80 or higher.
+
 ## Typical Usage
 
 To take the 3 most recently updated files in the current directory, ordering them

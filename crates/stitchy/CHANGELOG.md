@@ -1,4 +1,8 @@
 
+### 0.1.10 (July 26, 2025)
+
+- Bump dependencies to pull in fixes and performance improvements (now requires Rust 1.80 or higher)
+
 ### 0.1.9 (February 13, 2025)
 
 - Support WebP (lossless only)

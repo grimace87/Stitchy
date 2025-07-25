@@ -1,4 +1,8 @@
 
+### 0.1.6 (July 26, 2025)
+
+- Bump dependencies to pull in fixes and performance improvements (now requires Rust 1.80 or higher)
+
 ### 0.1.5 (March 8, 2025)
 
 - Added types `RawBufferLocation` and `RawBufferProperties` for working with raw byte slices

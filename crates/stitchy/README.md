@@ -11,9 +11,11 @@ capabilities using command-line arguments and profile defaults, and adding file 
 See the [root project overview](https://github.com/grimace87/Stitchy) for an
 overview of the Stitchy ecosystem.
 
-## Installing
+## Minimum Supported Rist Version (MSRV)
 
-Rust version 1.63 or later is required.
+Requires Rust version 1.80 or higher.
+
+## Installing
 
 - [Install the Rust programming language](https://www.rust-lang.org/tools/install) if you don't 
   already have it; this will include the `cargo` tool by default
